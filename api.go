@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -27,7 +27,7 @@ func authenticate(sitename, username, password string) (*Response, error) {
 	req.Header.Set("Accept", "application/json")
 
 	// Add the username, password, client_id, and grant_type to the request body
-	req.Body = ioutil.NopCloser(strings.NewReader(fmt.Sprintf("username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password", username, password)))
+	req.Body = io.NopCloser(strings.NewReader(fmt.Sprintf("username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password", username, password)))
 
 	// Make the POST request and get the response
 	res, err := client.Do(req)
