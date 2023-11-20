@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"encoding/json"
@@ -9,10 +9,28 @@ import (
 )
 
 // ----------------------------------------------
-// static globals
+// static var
 // ----------------------------------------------
+
 var DOMAIN = ".pamdas.org"
 var API_AUTH = "/oauth2/token"
+
+// ----------------------------------------------
+// stucts
+// ----------------------------------------------
+
+type Response struct {
+	AccessToken      string `json:"access_token"`
+	ExpiresIn        int    `json:"expires_in"`
+	TokenType        string `json:"token_type"`
+	Scope            string `json:"scope"`
+	RefreshToken     string `json:"refresh_token"`
+	ErrorDescription string `json:"error_description"`
+}
+
+// ----------------------------------------------
+// public funtions
+// ----------------------------------------------
 
 func authenticate(sitename, username, password string) (*Response, error) {
 	// Create a new HTTP client and make a POST request to the authentication endpoint
