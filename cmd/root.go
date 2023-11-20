@@ -7,9 +7,10 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "er",
-	Short: "EarthRanger CLI",
-	Long:  `Work with EarthRanger platform from command line`,
+	Use:     "er",
+	Short:   "EarthRanger CLI",
+	Long:    `Work with EarthRanger platform from command line`,
+	Version: "0.1.0",
 }
 
 func Execute() {
