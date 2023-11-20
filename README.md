@@ -1,6 +1,5 @@
 # EarthRanger CLI tool
-![Build Status][ci-url]
-[ci-url]: https://github.com/doneill/er-cli-go/actions/workflows/go.yml/badge.svg
+![Build Status](https://github.com/doneill/er-cli-go/actions/workflows/go.yml/badge.svg)
 
 ## Features
 - Authenticate against an [EarthRanger](https://www.earthranger.com) site
