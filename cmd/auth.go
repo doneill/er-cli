@@ -7,17 +7,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// authCmd represents the auth command
+// ----------------------------------------------
+// auth command
+// ----------------------------------------------
+
 var authCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Authentication with EarthRanger",
 	Long:  `Authenticate er with EarthRanger`,
-	Run:   func(cmd *cobra.Command, args []string) {},
+	Run: func(cmd *cobra.Command, args []string) {
+		auth()
+	},
 }
 
-func init() {
-	rootCmd.AddCommand(authCmd)
+// ----------------------------------------------
+// funtions
+// ----------------------------------------------
 
+func auth() {
 	fmt.Println("Enter sitename:")
 	var sitename string
 	_, err := fmt.Scan(&sitename)
@@ -54,4 +61,12 @@ func init() {
 		fmt.Printf("Access Token: %s\n", response.AccessToken)
 		fmt.Printf("Expires In: %d\n", response.ExpiresIn)
 	}
+}
+
+// ----------------------------------------------
+// initialize
+// ----------------------------------------------
+
+func init() {
+	rootCmd.AddCommand(authCmd)
 }
