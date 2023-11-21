@@ -29,7 +29,7 @@ type Response struct {
 }
 
 // ----------------------------------------------
-// package funtions
+// exported funtions
 // ----------------------------------------------
 
 func Authenticate(sitename, username, password string) (*Response, error) {
