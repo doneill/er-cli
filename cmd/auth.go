@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/doneill/er-cli-go/api"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +42,7 @@ func auth() {
 	}
 
 	// Call the authenticate function to get the access token and expires in
-	response, err := authenticate(SITENAME, USERNAME, password)
+	response, err := api.Authenticate(SITENAME, USERNAME, password)
 	if err != nil {
 		fmt.Println("Error authenticating:", err)
 		os.Exit(1)
