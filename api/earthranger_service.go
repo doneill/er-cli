@@ -1,4 +1,4 @@
-package cmd
+package api
 
 import (
 	"encoding/json"
@@ -32,7 +32,7 @@ type Response struct {
 // package funtions
 // ----------------------------------------------
 
-func authenticate(sitename, username, password string) (*Response, error) {
+func Authenticate(sitename, username, password string) (*Response, error) {
 	// Create a new HTTP client and make a POST request to the authentication endpoint
 	client := &http.Client{}
 	req, err := http.NewRequest("POST", fmt.Sprintf("https://%s%s%s", sitename, DOMAIN, API_AUTH), nil)
