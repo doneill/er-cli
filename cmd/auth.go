@@ -6,6 +6,7 @@ import (
 
 	"github.com/doneill/er-cli-go/api"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // ----------------------------------------------
