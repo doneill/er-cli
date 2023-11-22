@@ -6,6 +6,7 @@ import (
 
 	"github.com/doneill/er-cli-go/api"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // ----------------------------------------------
@@ -50,8 +51,15 @@ func auth() {
 
 	// Print out the access token and expires in if the request was successful
 	if response != nil {
-		fmt.Printf("Access Token: %s\n", response.AccessToken)
-		fmt.Printf("Expires In: %d\n", response.ExpiresIn)
+		viper.Set("user", USERNAME)
+		viper.Set("oauth_token", response.AccessToken)
+		viper.Set("expires", response.ExpiresIn)
+		err := viper.WriteConfigAs(PROGRAM_NAME + CONFIG_TYPE)
+		if err != nil {
+			fmt.Println("Error writing configuration file:", err)
+		} else {
+			fmt.Println("Authenticated!")
+		}
 	}
 }
 
