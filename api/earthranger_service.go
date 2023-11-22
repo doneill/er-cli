@@ -9,11 +9,11 @@ import (
 )
 
 // ----------------------------------------------
-// static var
+// const var
 // ----------------------------------------------
 
-var DOMAIN = ".pamdas.org"
-var API_AUTH = "/oauth2/token"
+const DOMAIN = ".pamdas.org"
+const API_AUTH = "/oauth2/token"
 
 // ----------------------------------------------
 // stucts
