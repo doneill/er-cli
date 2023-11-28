@@ -12,7 +12,7 @@ import (
 // stucts
 // ----------------------------------------------
 
-type Response struct {
+type AuthResponse struct {
 	AccessToken      string `json:"access_token"`
 	ExpiresIn        int    `json:"expires_in"`
 	TokenType        string `json:"token_type"`
@@ -25,7 +25,7 @@ type Response struct {
 // exported funtions
 // ----------------------------------------------
 
-func Authenticate(sitename, username, password string) (*Response, error) {
+func Authenticate(sitename, username, password string) (*AuthResponse, error) {
 	client := &http.Client{}
 	authReq := getAuthRequest(sitename)
 	authReq.Body = io.NopCloser(strings.NewReader(fmt.Sprintf("username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password", username, password)))
@@ -36,7 +36,7 @@ func Authenticate(sitename, username, password string) (*Response, error) {
 	}
 	defer res.Body.Close()
 
-	var responseData Response
+	var responseData AuthResponse
 	err = json.NewDecoder(res.Body).Decode(&responseData)
 	if err != nil {
 		fmt.Println("Error decoding response:", err)
