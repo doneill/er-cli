@@ -9,13 +9,6 @@ import (
 )
 
 // ----------------------------------------------
-// const var
-// ----------------------------------------------
-
-const DOMAIN = ".pamdas.org"
-const API_AUTH = "/oauth2/token"
-
-// ----------------------------------------------
 // stucts
 // ----------------------------------------------
 
@@ -31,21 +24,6 @@ type Response struct {
 // ----------------------------------------------
 // exported funtions
 // ----------------------------------------------
-
-func getApiUrl(sitename string, endpoint string) string {
-	return fmt.Sprintf("https://%s%s%s", sitename, DOMAIN, endpoint)
-}
-
-func getAuthRequest(sitename string) http.Request {
-	req, err := http.NewRequest("POST", getApiUrl(sitename, API_AUTH), nil)
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-
-	return *req
-}
 
 func Authenticate(sitename, username, password string) (*Response, error) {
 	client := &http.Client{}
