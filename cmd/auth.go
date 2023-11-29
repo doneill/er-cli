@@ -52,6 +52,7 @@ func auth() {
 	// Print out the access token and expires in if the request was successful
 	if authResponse != nil {
 		viper.Set("user", USERNAME)
+		viper.Set("sitename", SITENAME)
 		viper.Set("oauth_token", authResponse.AccessToken)
 		viper.Set("expires", authResponse.ExpiresIn)
 		err := viper.WriteConfigAs(PROGRAM_NAME + CONFIG_TYPE)
