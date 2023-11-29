@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/doneill/er-cli-go/api"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -33,23 +34,23 @@ func user() {
 	}
 
 	if userResponse != nil {
-		formattedResponse := fmt.Sprintf("username: %s\nemail: %s\nfirst name: %s\nlast name: %s\nrole: %s\nis staff: %t\nis superuser: %t\ndate joined: %s\nid: %s\nisactive: %t\nlast login: %s\npin: %s\nsubject id: %s\npermissions:\n  patrol: %v\nmobile tests: %v",
+		data := []string{
 			userResponse.Data.Username,
 			userResponse.Data.Email,
 			userResponse.Data.FirstName,
 			userResponse.Data.LastName,
-			userResponse.Data.Role,
-			userResponse.Data.IsStaff,
-			userResponse.Data.IsSuperUser,
-			userResponse.Data.DateJoined,
 			userResponse.Data.ID,
-			userResponse.Data.IsActive,
-			userResponse.Data.LastLogin,
 			userResponse.Data.Pin,
 			userResponse.Data.Subject.ID,
-			userResponse.Data.Permissions.Patrol,
-			userResponse.Data.Permissions.MobileTests)
-		fmt.Println(formattedResponse)
+		}
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Username", "Email", "First Name", "Last Name", "ID", "Pin", "Subject ID"})
+		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+		table.SetCenterSeparator("|")
+		table.Append(data)
+
+		table.Render()
 	}
 }
 
