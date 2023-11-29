@@ -14,31 +14,17 @@ import (
 
 type UserResponse struct {
 	Data struct {
-		Username    string `json:"username"`
-		Email       string `json:"email"`
-		FirstName   string `json:"first_name"`
-		LastName    string `json:"last_name"`
-		Role        string `json:"role"`
-		IsStaff     bool   `json:"is_staff"`
-		IsSuperUser bool   `json:"is_superuser"`
-		DateJoined  string `json:"date_joined"`
-		ID          string `json:"id"`
-		IsActive    bool   `json:"is_active"`
-		LastLogin   string `json:"last_login"`
-		Pin         string `json:"pin"`
-		Subject     struct {
+		Username  string `json:"username"`
+		Email     string `json:"email"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		ID        string `json:"id"`
+		Pin       string `json:"pin"`
+		Subject   struct {
 			ID string `json:"id"`
 		} `json:"subject"`
-		Permissions struct {
-			Patrol      []string `json:"patrol"`
-			MobileTests []string `json:"mobile_tests"`
-		} `json:"permissions"`
 	} `json:"data"`
 	ErrorDescription string `json:"error_description"`
-	Status           struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"status"`
 }
 
 // ----------------------------------------------
