@@ -12,11 +12,6 @@ import (
 // stucts
 // ----------------------------------------------
 
-//	type UserResponse struct {
-//		UserName         string `json:"username"`
-//		Email            string `json:"email"`
-//		ErrorDescription string `json:"error_description"`
-//	}
 type UserResponse struct {
 	Data struct {
 		Username    string `json:"username"`
