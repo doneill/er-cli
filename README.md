@@ -35,6 +35,10 @@ gh auth token
 ```bash
 # Display the currently authenticated user
 er user
+# Returns table data
+| USERNAME |        EMAIL         | FIRST NAME | LAST NAME |                  ID                  | PIN  |              SUBJECT ID              |
+|----------|----------------------|------------|-----------|--------------------------------------|------|--------------------------------------|
+| cccy     |                      | CC         |  CY       | 015945ff-c220-4674-a070-3f1112e445fg |      | 12c245f6-8d77-4e15-a82c-be4a717034df |
 ```
 
 
