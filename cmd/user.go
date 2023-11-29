@@ -33,7 +33,6 @@ func user() {
 	}
 
 	if userResponse != nil {
-		// fmt.Println("Success: " + userResponse.Data.Subject.ID)
 		formattedResponse := fmt.Sprintf("username: %s\nemail: %s\nfirst name: %s\nlast name: %s\nrole: %s\nis staff: %t\nis superuser: %t\ndate joined: %s\nid: %s\nisactive: %t\nlast login: %s\npin: %s\nsubject id: %s\npermissions:\n  patrol: %v\nmobile tests: %v",
 			userResponse.Data.Username,
 			userResponse.Data.Email,
