@@ -30,7 +30,7 @@ var authCmd = &cobra.Command{
 }
 
 // ----------------------------------------------
-// funtions
+// functions
 // ----------------------------------------------
 
 func auth() {
@@ -43,17 +43,18 @@ func auth() {
 	}
 
 	// Call the authenticate function to get the access token and expires in
-	response, err := api.Authenticate(SITENAME, USERNAME, password)
+	authResponse, err := api.Authenticate(SITENAME, USERNAME, password)
 	if err != nil {
 		fmt.Println("Error authenticating:", err)
 		os.Exit(1)
 	}
 
 	// Print out the access token and expires in if the request was successful
-	if response != nil {
+	if authResponse != nil {
 		viper.Set("user", USERNAME)
-		viper.Set("oauth_token", response.AccessToken)
-		viper.Set("expires", response.ExpiresIn)
+		viper.Set("sitename", SITENAME)
+		viper.Set("oauth_token", authResponse.AccessToken)
+		viper.Set("expires", authResponse.ExpiresIn)
 		err := viper.WriteConfigAs(PROGRAM_NAME + CONFIG_TYPE)
 		if err != nil {
 			fmt.Println("Error writing configuration file:", err)
