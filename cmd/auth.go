@@ -3,10 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
+	"syscall"
 
 	"github.com/doneill/er-cli-go/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/term"
 )
 
 // ----------------------------------------------
@@ -35,21 +38,15 @@ var authCmd = &cobra.Command{
 
 func auth() {
 	fmt.Println("Enter password:")
-	var password string
-	_, err := fmt.Scan(&password)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	password, err := term.ReadPassword(int(syscall.Stdin))
+	passwordStr := strings.TrimSpace(string(password))
 
-	// Call the authenticate function to get the access token and expires in
-	authResponse, err := api.Authenticate(SITENAME, USERNAME, password)
+	authResponse, err := api.Authenticate(SITENAME, USERNAME, passwordStr)
 	if err != nil {
 		fmt.Println("Error authenticating:", err)
 		os.Exit(1)
 	}
 
-	// Print out the access token and expires in if the request was successful
 	if authResponse != nil {
 		viper.Set("user", USERNAME)
 		viper.Set("sitename", SITENAME)
