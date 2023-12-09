@@ -34,23 +34,42 @@ func user() {
 	}
 
 	if userResponse != nil {
-		data := []string{
-			userResponse.Data.Username,
-			userResponse.Data.Email,
-			userResponse.Data.FirstName,
-			userResponse.Data.LastName,
-			userResponse.Data.ID,
-			userResponse.Data.Pin,
-			userResponse.Data.Subject.ID,
+		switch {
+		case all:
+			allUserDataFmt := fmt.Sprintf("username: %s\nemail: %s\nfirst name: %s\nlast name: %s\nrole: %s\nis staff: %t\nis superuser: %t\ndate joined: %s\nid: %s\nisactive: %t\nlast login: %s\npin: %s\nsubject id: %s",
+				userResponse.Data.Username,
+				userResponse.Data.Email,
+				userResponse.Data.FirstName,
+				userResponse.Data.LastName,
+				userResponse.Data.Role,
+				userResponse.Data.IsStaff,
+				userResponse.Data.IsSuperUser,
+				userResponse.Data.DateJoined,
+				userResponse.Data.ID,
+				userResponse.Data.IsActive,
+				userResponse.Data.LastLogin,
+				userResponse.Data.Pin,
+				userResponse.Data.Subject.ID)
+			fmt.Println(allUserDataFmt)
+		default:
+			userData := []string{
+				userResponse.Data.Username,
+				userResponse.Data.Email,
+				userResponse.Data.FirstName,
+				userResponse.Data.LastName,
+				userResponse.Data.ID,
+				userResponse.Data.Pin,
+				userResponse.Data.Subject.ID,
+			}
+
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"Username", "Email", "First Name", "Last Name", "ID", "Pin", "Subject ID"})
+			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+			table.SetCenterSeparator("|")
+			table.Append(userData)
+
+			table.Render()
 		}
-
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Username", "Email", "First Name", "Last Name", "ID", "Pin", "Subject ID"})
-		table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		table.SetCenterSeparator("|")
-		table.Append(data)
-
-		table.Render()
 	}
 }
 
