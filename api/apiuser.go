@@ -14,13 +14,19 @@ import (
 
 type UserResponse struct {
 	Data struct {
-		Username  string `json:"username"`
-		Email     string `json:"email"`
-		FirstName string `json:"first_name"`
-		LastName  string `json:"last_name"`
-		ID        string `json:"id"`
-		Pin       string `json:"pin"`
-		Subject   struct {
+		Username    string `json:"username"`
+		Email       string `json:"email"`
+		FirstName   string `json:"first_name"`
+		LastName    string `json:"last_name"`
+		Role        string `json:"role"`
+		IsStaff     bool   `json:"is_staff"`
+		IsSuperUser bool   `json:"is_superuser"`
+		DateJoined  string `json:"date_joined"`
+		ID          string `json:"id"`
+		IsActive    bool   `json:"is_active"`
+		LastLogin   string `json:"last_login"`
+		Pin         string `json:"pin"`
+		Subject     struct {
 			ID string `json:"id"`
 		} `json:"subject"`
 	} `json:"data"`
