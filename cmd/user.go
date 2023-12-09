@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var all bool
+
 // ----------------------------------------------
 // user command
 // ----------------------------------------------
@@ -79,4 +81,5 @@ func user() {
 
 func init() {
 	rootCmd.AddCommand(userCmd)
+	userCmd.Flags().BoolVarP(&all, "all", "a", false, "list all user parameters")
 }
