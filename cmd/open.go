@@ -5,7 +5,6 @@ import (
 
 	"github.com/doneill/er-cli-go/data"
 	"github.com/spf13/cobra"
-	"gorm.io/gorm"
 )
 
 var displayTables bool
@@ -37,7 +36,7 @@ func open(file string) {
 
 	switch {
 	case displayTables:
-		tables, err := getTables(*db)
+		tables, err := data.GetTables(*db)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -49,15 +48,6 @@ func open(file string) {
 		message := fmt.Sprintf("%s successfully opened", file)
 		fmt.Println(message)
 	}
-}
-
-func getTables(db gorm.DB) (tableList []string, err error) {
-	tables, err := db.Migrator().GetTables()
-	if err != nil {
-		return nil, err
-	}
-
-	return tables, nil
 }
 
 // ----------------------------------------------

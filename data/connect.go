@@ -17,3 +17,12 @@ func DbConnect(file string) (*gorm.DB, error) {
 
 	return db, nil
 }
+
+func GetTables(db gorm.DB) (tableList []string, err error) {
+	tables, err := db.Migrator().GetTables()
+	if err != nil {
+		return nil, err
+	}
+
+	return tables, nil
+}
