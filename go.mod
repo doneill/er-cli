@@ -1,14 +1,21 @@
 module github.com/doneill/er-cli-go
 
-go 1.21.4
+go 1.21
 
 require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
+	gorm.io/driver/sqlite v1.5.4
+	gorm.io/gorm v1.25.5
 )
 
-require github.com/mattn/go-runewidth v0.0.9 // indirect
+require (
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-sqlite3 v1.14.18 // indirect
+)
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
