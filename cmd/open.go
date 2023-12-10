@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/doneill/er-cli-go/data"
 	"github.com/spf13/cobra"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -29,7 +29,7 @@ var openCmd = &cobra.Command{
 // ----------------------------------------------
 
 func open(file string) {
-	db, err := connectToSQLite(file)
+	db, err := data.DbConnect(file)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -49,15 +49,6 @@ func open(file string) {
 		message := fmt.Sprintf("%s successfully opened", file)
 		fmt.Println(message)
 	}
-}
-
-func connectToSQLite(file string) (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open(file), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
 }
 
 func getTables(db gorm.DB) (tableList []string, err error) {
