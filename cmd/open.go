@@ -45,7 +45,7 @@ func open(file string) {
 			fmt.Println(tableName)
 		}
 	default:
-		message := fmt.Sprintf("%s successfully opened", file)
+		message := fmt.Sprintf("%s successfully opened!", file)
 		fmt.Println(message)
 	}
 }
