@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/doneill/er-cli-go/data"
+	"github.com/doneill/er-cli/data"
 	"github.com/spf13/cobra"
 )
 
