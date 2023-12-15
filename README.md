@@ -1,5 +1,5 @@
 # EarthRanger CLI 
-![Build Status](https://github.com/doneill/er-cli-go/actions/workflows/go.yml/badge.svg)
+![Build Status](https://github.com/doneill/er-cli/actions/workflows/go.yml/badge.svg)
 
 ## Build
 `go build -o bin/er`
@@ -43,8 +43,8 @@ er user
 
 
 ## Contributors
-<a href="https://github.com/doneill/er-cli-go/graphs/contributors">
-  <img src="https://contributors-img.web.app/image?repo=doneill/er-cli-go" />
+<a href="https://github.com/doneill/er-cli/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=doneill/er-cli" />
 </a>
 
 ## Licensing

@@ -27,10 +27,16 @@ type AuthResponse struct {
 
 func Authenticate(sitename, username, password string) (*AuthResponse, error) {
 	client := &http.Client{}
-	authReq := getAuthRequest(sitename)
-	authReq.Body = io.NopCloser(strings.NewReader(fmt.Sprintf("username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password", username, password)))
+	authReq, err := getAuthRequest(sitename)
+	if err != nil {
+		fmt.Println("Error generating auth client", err)
+	}
+	authReq.Body = io.NopCloser(
+		strings.NewReader(
+			fmt.Sprintf(
+				"username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password", username, password)))
 
-	res, err := client.Do(&authReq)
+	res, err := client.Do(authReq)
 	if err != nil {
 		fmt.Println("Error making request:", err)
 	}
