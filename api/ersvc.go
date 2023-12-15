@@ -27,24 +27,24 @@ func getApiUrl(sitename string, endpoint string) string {
 	return fmt.Sprintf("https://%s%s%s", sitename, DOMAIN, endpoint)
 }
 
-func getAuthRequest(sitename string) http.Request {
+func getAuthRequest(sitename string) (*http.Request, error) {
 	req, err := http.NewRequest("POST", getApiUrl(sitename, API_AUTH), nil)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	return *req
+	return req, nil
 }
 
-func getClientRequest(sitename string, endpoint string, token string) http.Request {
+func getClientReqest(sitename string, endpoint string, token string) (*http.Request, error) {
 	req, err := http.NewRequest("GET", getApiUrl(sitename, endpoint), nil)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
+		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Cache-control", "no-cache")
 
-	return *req
+	return req, nil
 }

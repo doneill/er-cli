@@ -39,9 +39,12 @@ type UserResponse struct {
 
 func User() (*UserResponse, error) {
 	client := &http.Client{}
-	clientReq := getClientRequest(config.Sitename(), API_USER_ME, config.Token())
+	clientReq, err := getClientReqest(config.Sitename(), API_USER_ME, config.Token())
+	if err != nil {
+		fmt.Println("Error generating client", err)
+	}
 
-	res, err := client.Do(&clientReq)
+	res, err := client.Do(clientReq)
 	if err != nil {
 		fmt.Println("Error making request:", err)
 	}
