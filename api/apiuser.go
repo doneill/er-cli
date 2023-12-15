@@ -39,7 +39,7 @@ type UserResponse struct {
 
 func User() (*UserResponse, error) {
 	client := &http.Client{}
-	clientReq, err := getClientReqest(config.Sitename(), API_USER_ME, config.Token())
+	clientReq, err := getClientRequest(config.Sitename(), API_USER_ME, config.Token())
 	if err != nil {
 		fmt.Println("Error generating client", err)
 	}

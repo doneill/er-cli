@@ -38,7 +38,7 @@ func getAuthRequest(sitename string) (*http.Request, error) {
 	return req, nil
 }
 
-func getClientReqest(sitename string, endpoint string, token string) (*http.Request, error) {
+func getClientRequest(sitename string, endpoint string, token string) (*http.Request, error) {
 	req, err := http.NewRequest("GET", getApiUrl(sitename, endpoint), nil)
 	if err != nil {
 		return nil, err
