@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/doneill/er-cli-go/api"
+	"github.com/doneill/er-cli/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )

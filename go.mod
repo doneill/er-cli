@@ -1,4 +1,4 @@
-module github.com/doneill/er-cli-go
+module github.com/doneill/er-cli
 
 go 1.21
 

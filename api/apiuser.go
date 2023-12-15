@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/doneill/er-cli-go/config"
+	"github.com/doneill/er-cli/config"
 )
 
 // ----------------------------------------------
