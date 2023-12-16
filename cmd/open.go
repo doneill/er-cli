@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/doneill/er-cli/data"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -28,6 +30,8 @@ var openCmd = &cobra.Command{
 // ----------------------------------------------
 
 func open(file string) {
+	var count int64
+
 	db, err := data.DbConnect(file)
 	if err != nil {
 		fmt.Println(err)
@@ -41,9 +45,16 @@ func open(file string) {
 			fmt.Println(err)
 			return
 		}
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"Name", "Count"})
+
 		for _, tableName := range tables {
-			fmt.Println(tableName)
+			db.Table(tableName).Count(&count)
+			table.Append([]string{tableName, fmt.Sprintf("%d", count)})
 		}
+
+		table.Render()
 	default:
 		message := fmt.Sprintf("%s successfully opened!", file)
 		fmt.Println(message)
