@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var dbUser bool
 var displayTables bool
 
 // ----------------------------------------------
@@ -39,6 +40,10 @@ func open(file string) {
 	}
 
 	switch {
+	case dbUser:
+		var user []data.Accounts_User
+		db.First(&user)
+		fmt.Println(user[0].Username)
 	case displayTables:
 		tables, err := data.GetTables(*db)
 		if err != nil {
@@ -67,5 +72,6 @@ func open(file string) {
 
 func init() {
 	rootCmd.AddCommand(openCmd)
+	openCmd.Flags().BoolVarP(&dbUser, "user", "u", false, "Display database account user")
 	openCmd.Flags().BoolVarP(&displayTables, "tables", "t", false, "Display all database tables")
 }
