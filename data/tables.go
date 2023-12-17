@@ -13,6 +13,12 @@ type Accounts_User struct {
 	Email     string `json:"email" gorm:"column:email"`
 }
 
+type Event struct {
+	ID       int    `gorm:"primaryKey;autoIncrement"`
+	RemoteID string `json:"remote_id" gorm:"column:remote_id"`
+	Title    string `json:"title" gorm:"column:title"`
+}
+
 // ----------------------------------------------
 // table configurations
 // ----------------------------------------------

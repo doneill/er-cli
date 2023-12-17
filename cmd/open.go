@@ -11,6 +11,7 @@ import (
 
 var dbUser bool
 var displayTables bool
+var events bool
 
 // ----------------------------------------------
 // open command
@@ -60,6 +61,17 @@ func open(file string) {
 		}
 
 		table.Render()
+	case events:
+		var events []data.Event
+		db.Where("remote_id IS NULL").Find(&events)
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"ID", "Title"})
+
+		for _, event := range events {
+			table.Append([]string{fmt.Sprintf("%d", event.ID), event.Title})
+		}
+		table.Render()
 	default:
 		message := fmt.Sprintf("%s successfully opened!", file)
 		fmt.Println(message)
@@ -74,4 +86,5 @@ func init() {
 	rootCmd.AddCommand(openCmd)
 	openCmd.Flags().BoolVarP(&dbUser, "user", "u", false, "Display database account user")
 	openCmd.Flags().BoolVarP(&displayTables, "tables", "t", false, "Display all database tables")
+	openCmd.Flags().BoolVarP(&events, "events", "e", false, "Display all pending sync events")
 }
