@@ -63,13 +63,22 @@ func open(file string) {
 		table.Render()
 	case events:
 		var events []data.Event
+		var profile []data.User_Profile
+		var users []string
+
 		db.Where("remote_id IS NULL").Find(&events)
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"ID", "Title"})
+		table.SetHeader([]string{"ID", "User", "Title"})
 
 		for _, event := range events {
-			table.Append([]string{fmt.Sprintf("%d", event.ID), event.Title})
+			if event.ProfileID != 0 {
+				db.Where("id = ?", event.ProfileID).Find(&profile)
+				users = append(users, profile[0].Username)
+			} else {
+				users = append(users, "dai3")
+			}
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title})
 		}
 		table.Render()
 	default:
