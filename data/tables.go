@@ -5,12 +5,22 @@ package data
 // ----------------------------------------------
 
 type Accounts_User struct {
+	ID       int    `gorm:"primaryKey;autoIncrement"`
+	RemoteID string `json:"remote_id" gorm:"column:remote_id"`
+	Username string `json:"username" gorm:"column:username"`
+}
+
+type Event struct {
 	ID        int    `gorm:"primaryKey;autoIncrement"`
 	RemoteID  string `json:"remote_id" gorm:"column:remote_id"`
-	Username  string `json:"username" gorm:"column:username"`
-	FirstName string `json:"first_name" gorm:"column:first_name"`
-	LastName  string `json:"last_name" gorm:"column:last_name"`
-	Email     string `json:"email" gorm:"column:email"`
+	ProfileID int    `json:"profile_id" gorm:"column:profile_id"`
+	Title     string `json:"title" gorm:"column:title"`
+}
+
+type User_Profile struct {
+	ID       int    `gorm:"primaryKey;autoIncrement"`
+	RemoteID string `json:"remote_id" gorm:"column:remote_id"`
+	Username string `json:"username" gorm:"column:username"`
 }
 
 // ----------------------------------------------
