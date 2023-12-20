@@ -113,6 +113,20 @@ er open earthranger.db -t
 +------------------+-------+
 ```
 
+### Events
+Display all pending sync events
+
+```bash
+er open earthranger.db -e
+
++----+--------------+--------------------+
+| ID |     USER     |       TITLE        |
++----+--------------+--------------------+
+|  9 | dai3-profile | Light              |
+| 13 | dai2-profile | String No Required |
++----+--------------+--------------------+
+```
+
 ### Database user
 Query the database for the username of the mobile user
 
