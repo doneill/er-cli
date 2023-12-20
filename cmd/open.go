@@ -67,7 +67,7 @@ func open(file string) {
 		var user data.Accounts_User
 		var users []string
 
-		db.Where("remote_id IS NULL").Or("remote_id = ?", "").Find(&events)
+		db.Where("is_draft = 0").Where(db.Where("remote_id IS NULL").Or("remote_id = ?", "")).Find(&events)
 
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"ID", "User", "Title"})
