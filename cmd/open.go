@@ -64,6 +64,7 @@ func open(file string) {
 	case events:
 		var events []data.Event
 		var profile []data.User_Profile
+		var user data.Accounts_User
 		var users []string
 
 		db.Where("remote_id IS NULL").Or("remote_id = ?", "").Find(&events)
@@ -76,7 +77,8 @@ func open(file string) {
 				db.Where("id = ?", event.ProfileID).Find(&profile)
 				users = append(users, profile[0].Username)
 			} else {
-				users = append(users, "dai3")
+				db.First(&user)
+				users = append(users, user.Username)
 			}
 			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title})
 		}
