@@ -75,6 +75,7 @@ Usage:
   er open [sqlite db file] [flags]
 
 Flags:
+  -e, --events   Display all pending sync events
   -h, --help     help for open
   -t, --tables   Display all database tables
   -u, --user     Display database account user
