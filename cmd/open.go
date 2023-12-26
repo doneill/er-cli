@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/doneill/er-cli/data"
+	"github.com/doneill/er-cli/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +61,7 @@ func open(file string) {
 		events := data.SelectPendingSyncEvents()
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"ID", "User", "Title"})
+		table.SetHeader([]string{"ID", "User", "Title", "Created At"})
 
 		for _, event := range events {
 			if event.ProfileID != 0 {
@@ -70,7 +71,8 @@ func open(file string) {
 				user := data.SelectUser()
 				users = append(users, user.Username)
 			}
-			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title})
+			isoTime := utils.ConvertUnixToIso(event.CreatedAt)
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, isoTime})
 		}
 		table.Render()
 	default:
