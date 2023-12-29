@@ -7,6 +7,7 @@ import (
 	"github.com/doneill/er-cli/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var all bool
@@ -71,6 +72,17 @@ func user() {
 			table.Append(userData)
 
 			table.Render()
+		}
+
+		viper.ReadInConfig()
+		if !viper.IsSet("remote_id") {
+			viper.Set("remote_id", userResponse.Data.ID)
+			err := viper.WriteConfigAs(viper.ConfigFileUsed())
+			if err != nil {
+				fmt.Println("Error writing configuration file:", err)
+			} else {
+				fmt.Println("Config updated user id!")
+			}
 		}
 	}
 }
