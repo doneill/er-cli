@@ -66,7 +66,7 @@ func user() {
 
 			table := tablewriter.NewWriter(os.Stdout)
 			table.SetHeader([]string{"Username", "Email", "First Name", "Last Name", "ID", "Pin", "Subject ID"})
-			table.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
+			table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
 			table.SetCenterSeparator("|")
 			table.Append(userData)
 
