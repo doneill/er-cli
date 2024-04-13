@@ -61,7 +61,7 @@ func open(file string) {
 		events := data.SelectPendingSyncEvents()
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"ID", "User", "Title", "Created At"})
+		table.SetHeader([]string{"ID", "User", "Title", "Values", "Patrol Segment ID", "Created At"})
 
 		for _, event := range events {
 			if event.ProfileID != 0 {
@@ -72,7 +72,7 @@ func open(file string) {
 				users = append(users, user.Username)
 			}
 			isoTime := utils.ConvertUnixToIso(event.CreatedAt)
-			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, isoTime})
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, event.Values, event.PatrolSegmentID, isoTime})
 		}
 		table.Render()
 	default:
