@@ -60,3 +60,9 @@ func SelectPendingSyncEvents() []Event {
 	db.Where("is_draft = 0").Where(db.Where("remote_id IS NULL").Or("remote_id = ?", "")).Find(&events)
 	return events
 }
+
+func SelectDrafts() []Event {
+	var events []Event
+	db.Where("is_draft = 1").Find(&events)
+	return events
+}

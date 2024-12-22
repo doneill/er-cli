@@ -15,7 +15,8 @@ type Event struct {
 	RemoteID  string `json:"remote_id" gorm:"column:remote_id"`
 	ProfileID int    `json:"profile_id" gorm:"column:profile_id"`
 	Title     string `json:"title" gorm:"column:title"`
-	CreatedAt int64  `json:"created_at" gorm:"created_at"`
+	CreatedAt string `json:"created_at" gorm:"created_at"`
+	UpdatedAt int64  `json:"updated_at" gorm:"updated_at"`
 }
 
 type User_Profile struct {

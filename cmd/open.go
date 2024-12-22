@@ -12,7 +12,8 @@ import (
 
 var dbUser bool
 var displayTables bool
-var events bool
+var eventPendingSyncs bool
+var eventDrafts bool
 
 // ----------------------------------------------
 // open command
@@ -55,13 +56,13 @@ func open(file string) {
 		}
 
 		table.Render()
-	case events:
+	case eventPendingSyncs:
 		var users []string
 
 		events := data.SelectPendingSyncEvents()
 
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"ID", "User", "Title", "Created At"})
+		table.SetHeader([]string{"ID", "User", "Title", "Created At", "Updated At"})
 
 		for _, event := range events {
 			if event.ProfileID != 0 {
@@ -71,8 +72,28 @@ func open(file string) {
 				user := data.SelectUser()
 				users = append(users, user.Username)
 			}
-			isoTime := utils.ConvertUnixToIso(event.CreatedAt)
-			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, isoTime})
+			isoTime := utils.ConvertUnixToIso(event.UpdatedAt)
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, event.CreatedAt, isoTime})
+		}
+		table.Render()
+	case eventDrafts:
+		var users []string
+
+		events := data.SelectDrafts()
+
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"ID", "User", "Title", "Created At", "Updated At"})
+
+		for _, event := range events {
+			if event.ProfileID != 0 {
+				profile := data.SelectUserProfileById(event.ProfileID)
+				users = append(users, profile.Username)
+			} else {
+				user := data.SelectUser()
+				users = append(users, user.Username)
+			}
+			isoTime := utils.ConvertUnixToIso(event.UpdatedAt)
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, event.CreatedAt, isoTime})
 		}
 		table.Render()
 	default:
@@ -89,5 +110,6 @@ func init() {
 	rootCmd.AddCommand(openCmd)
 	openCmd.Flags().BoolVarP(&dbUser, "user", "u", false, "Display database account user")
 	openCmd.Flags().BoolVarP(&displayTables, "tables", "t", false, "Display all database tables")
-	openCmd.Flags().BoolVarP(&events, "events", "e", false, "Display all pending sync events")
+	openCmd.Flags().BoolVarP(&eventPendingSyncs, "event-pending-syncs", "e", false, "Display all pending sync events")
+	openCmd.Flags().BoolVarP(&eventDrafts, "event-drafts", "d", false, "Display all draft events")
 }
