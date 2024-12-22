@@ -11,11 +11,13 @@ type Accounts_User struct {
 }
 
 type Event struct {
-	ID        int    `gorm:"primaryKey;autoIncrement"`
-	RemoteID  string `json:"remote_id" gorm:"column:remote_id"`
-	ProfileID int    `json:"profile_id" gorm:"column:profile_id"`
-	Title     string `json:"title" gorm:"column:title"`
-	CreatedAt string `json:"created_at" gorm:"created_at"`
+	ID              int    `gorm:"primaryKey;autoIncrement"`
+	RemoteID        string `json:"remote_id" gorm:"column:remote_id"`
+	ProfileID       int    `json:"profile_id" gorm:"column:profile_id"`
+	Title           string `json:"title" gorm:"column:title"`
+	Values          string `json:"event_values" gorm:"column:event_values"`
+	PatrolSegmentID string `json:"patrol_segment_id" gorm:"column:patrol_segment_id"`
+	CreatedAt       int64  `json:"created_at" gorm:"created_at"`
 	UpdatedAt int64  `json:"updated_at" gorm:"updated_at"`
 }
 
