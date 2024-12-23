@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/doneill/er-cli/data"
-	"github.com/doneill/er-cli/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -72,9 +71,7 @@ func open(file string) {
 				user := data.SelectUser()
 				users = append(users, user.Username)
 			}
-			createdAtIso := utils.ConvertUnixToIso(event.CreatedAt)
-			updatedAtIso := utils.ConvertUnixToIso(event.UpdatedAt)
-			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, event.Values, event.PatrolSegmentID, createdAtIso, updatedAtIso})
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, event.Values, event.PatrolSegmentID, event.CreatedAt, event.UpdatedAt})
 		}
 		table.Render()
 	case eventDrafts:
@@ -93,9 +90,7 @@ func open(file string) {
 				user := data.SelectUser()
 				users = append(users, user.Username)
 			}
-			createdAtIso := utils.ConvertUnixToIso(event.CreatedAt)
-			updatedAtIso := utils.ConvertUnixToIso(event.UpdatedAt)
-			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, createdAtIso, updatedAtIso})
+			table.Append([]string{fmt.Sprintf("%d", event.ID), users[len(users)-1], event.Title, event.CreatedAt, event.UpdatedAt})
 		}
 		table.Render()
 	default:
