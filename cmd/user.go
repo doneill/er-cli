@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/doneill/er-cli/api"
@@ -32,8 +33,11 @@ var userCmd = &cobra.Command{
 func user() {
 	userResponse, err := api.User()
 	if err != nil {
-		fmt.Println("Error authenticating:", err)
-		os.Exit(1)
+		log.Fatalf("Error authentication: %v", err)
+	}
+
+	if userResponse == nil {
+		log.Fatalf("No user response recieved")
 	}
 
 	if userResponse != nil {
