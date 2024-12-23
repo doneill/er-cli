@@ -40,55 +40,70 @@ func user() {
 		log.Fatalf("No user response recieved")
 	}
 
-	if userResponse != nil {
-		switch {
-		case all:
-			allUserDataFmt := fmt.Sprintf("username: %s\nemail: %s\nfirst name: %s\nlast name: %s\nrole: %s\nis staff: %t\nis superuser: %t\ndate joined: %s\nid: %s\nisactive: %t\nlast login: %s\npin: %s\nsubject id: %s",
-				userResponse.Data.Username,
-				userResponse.Data.Email,
-				userResponse.Data.FirstName,
-				userResponse.Data.LastName,
-				userResponse.Data.Role,
-				userResponse.Data.IsStaff,
-				userResponse.Data.IsSuperUser,
-				userResponse.Data.DateJoined,
-				userResponse.Data.ID,
-				userResponse.Data.IsActive,
-				userResponse.Data.LastLogin,
-				userResponse.Data.Pin,
-				userResponse.Data.Subject.ID)
-			fmt.Println(allUserDataFmt)
-		default:
-			userData := []string{
-				userResponse.Data.Username,
-				userResponse.Data.Email,
-				userResponse.Data.FirstName,
-				userResponse.Data.LastName,
-				userResponse.Data.ID,
-				userResponse.Data.Pin,
-				userResponse.Data.Subject.ID,
-			}
-
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"Username", "Email", "First Name", "Last Name", "ID", "Pin", "Subject ID"})
-			table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-			table.SetCenterSeparator("|")
-			table.Append(userData)
-
-			table.Render()
-		}
-
-		viper.ReadInConfig()
-		if !viper.IsSet("remote_id") {
-			viper.Set("remote_id", userResponse.Data.ID)
-			err := viper.WriteConfigAs(viper.ConfigFileUsed())
-			if err != nil {
-				fmt.Println("Error writing configuration file:", err)
-			} else {
-				fmt.Println("Config updated user id!")
-			}
-		}
+	switch {
+	case all:
+		fmt.Println(formatAllUserData(userResponse))
+	default:
+		table := configureTable()
+		table.Append(formatTableData(userResponse))
+		table.Render()
 	}
+
+	if err := updateConfig(userResponse.Data.ID); err != nil {
+		log.Printf("Warning: failed to update config: %v", err)
+	}
+}
+
+func formatAllUserData(data *api.UserResponse) string {
+	return fmt.Sprintf("username: %s\nemail: %s\nfirst name: %s\n"+
+		"last name: %s\nrole: %s\nis staff: %t\nis superuser: %t\n"+
+		"date joined: %s\nid: %s\nisactive: %t\nlast login: %s\n"+
+		"pin: %s\nsubject id: %s",
+		data.Data.Username,
+		data.Data.Email,
+		data.Data.FirstName,
+		data.Data.LastName,
+		data.Data.Role,
+		data.Data.IsStaff,
+		data.Data.IsSuperUser,
+		data.Data.DateJoined,
+		data.Data.ID,
+		data.Data.IsActive,
+		data.Data.LastLogin,
+		data.Data.Pin,
+		data.Data.Subject.ID)
+}
+
+func formatTableData(data *api.UserResponse) []string {
+	return []string{
+		data.Data.Username,
+		data.Data.Email,
+		data.Data.FirstName,
+		data.Data.LastName,
+		data.Data.ID,
+		data.Data.Pin,
+		data.Data.Subject.ID,
+	}
+}
+
+func configureTable() *tablewriter.Table {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Username", "Email", "First Name", "Last Name", "ID", "Pin", "Subject ID"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetCenterSeparator("|")
+	return table
+}
+
+func updateConfig(userID string) error {
+	if viper.IsSet("remote_id") {
+		return nil
+	}
+
+	viper.Set("remote_id", userID)
+	if err := viper.WriteConfigAs(viper.ConfigFileUsed()); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+	return nil
 }
 
 // ----------------------------------------------
