@@ -1,9 +1,7 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 
 	"github.com/doneill/er-cli/config"
 )
@@ -38,28 +36,17 @@ type UserResponse struct {
 // ----------------------------------------------
 
 func User() (*UserResponse, error) {
-	client := &http.Client{}
-	clientReq, err := getClientRequest(config.Sitename(), API_USER_ME, config.Token())
+	client := ERClient(config.Sitename(), config.Token())
+
+	req, err := client.newRequest("GET", API_USER_ME, false)
 	if err != nil {
-		fmt.Println("Error generating client", err)
+		return nil, fmt.Errorf("error generating request: %w", err)
 	}
 
-	res, err := client.Do(clientReq)
-	if err != nil {
-		fmt.Println("Error making request:", err)
-	}
 	var responseData UserResponse
-	err = json.NewDecoder(res.Body).Decode(&responseData)
-	if err != nil {
-		fmt.Println("Error decoding response:", err)
+	if err := client.doRequest(req, &responseData); err != nil {
+		return nil, fmt.Errorf("error making request: %w", err)
 	}
 
-	if res.StatusCode == 200 {
-		return &responseData, nil
-	}
-
-	fmt.Println("Error:", res.StatusCode)
-	fmt.Println("Error Description:", responseData.ErrorDescription)
-
-	return nil, err
+	return &responseData, nil
 }
