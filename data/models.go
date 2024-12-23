@@ -17,7 +17,8 @@ type Event struct {
 	Title           string `json:"title" gorm:"column:title"`
 	Values          string `json:"event_values" gorm:"column:event_values"`
 	PatrolSegmentID string `json:"patrol_segment_id" gorm:"column:patrol_segment_id"`
-	CreatedAt       int64  `json:"created_at" gorm:"created_at"`
+	CreatedAt       string `json:"created_at" gorm:"created_at"`
+	UpdatedAt       string `json:"updated_at" gorm:"updated_at"`
 }
 
 type User_Profile struct {
