@@ -100,7 +100,3 @@ func getApiUrl(sitename string, endpoint string, mockURL string) string {
 	}
 	return fmt.Sprintf("https://%s%s%s", sitename, DOMAIN, endpoint)
 }
-
-func getMockApiUrl(mocksite string, endpoint string) string {
-	return mocksite + endpoint
-}
