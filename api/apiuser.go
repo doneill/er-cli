@@ -44,6 +44,7 @@ type UserResponse struct {
 // ----------------------------------------------
 // client functions
 // ----------------------------------------------
+
 func (c *Client) User() (*UserResponse, error) {
 	req, err := c.newRequest("GET", API_USER_ME, false)
 	if err != nil {
