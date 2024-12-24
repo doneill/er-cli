@@ -20,6 +20,8 @@ const API_USER = API_V1 + "/user"
 
 const API_USER_ME = API_USER + "/me"
 
+const API_USER_PROFILES = "/profiles"
+
 // ----------------------------------------------
 // Struct
 // ----------------------------------------------
