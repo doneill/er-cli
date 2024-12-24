@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/doneill/er-cli/api"
+	"github.com/doneill/er-cli/config"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -34,7 +35,8 @@ var userCmd = &cobra.Command{
 // ----------------------------------------------
 
 func user() {
-	userResponse, err := api.User()
+	er := api.ERClient(config.Sitename(), config.Token())
+	userResponse, err := er.User()
 	if err != nil {
 		log.Fatalf("Error authentication: %v", err)
 	}
@@ -59,7 +61,8 @@ func user() {
 }
 
 func handleProfiles(userID string) {
-	profilesResponse, err := api.UserProfiles(userID)
+	er := api.ERClient(config.Sitename(), config.Token())
+	profilesResponse, err := er.UserProfiles(userID)
 	if err != nil {
 		log.Fatalf("Error getting profiles: %v", err)
 	}

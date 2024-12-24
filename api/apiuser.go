@@ -3,8 +3,6 @@ package api
 import (
 	"fmt"
 	"path"
-
-	"github.com/doneill/er-cli/config"
 )
 
 // ----------------------------------------------
@@ -44,38 +42,32 @@ type UserResponse struct {
 }
 
 // ----------------------------------------------
-// exported funtions
+// client functions
 // ----------------------------------------------
-
-func User() (*UserResponse, error) {
-	client := ERClient(config.Sitename(), config.Token())
-
-	req, err := client.newRequest("GET", API_USER_ME, false)
+func (c *Client) User() (*UserResponse, error) {
+	req, err := c.newRequest("GET", API_USER_ME, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating request: %w", err)
 	}
 
 	var responseData UserResponse
-	if err := client.doRequest(req, &responseData); err != nil {
+	if err := c.doRequest(req, &responseData); err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
 
 	return &responseData, nil
 }
 
-func UserProfiles(userID string) (*UserProfilesResponse, error) {
-	client := ERClient(config.Sitename(), config.Token())
-
-	// Construct the profiles endpoint
+func (c *Client) UserProfiles(userID string) (*UserProfilesResponse, error) {
 	profilesEndpoint := path.Join(API_USER, userID, API_USER_PROFILES)
 
-	req, err := client.newRequest("GET", profilesEndpoint, false)
+	req, err := c.newRequest("GET", profilesEndpoint, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating profiles request: %w", err)
 	}
 
 	var responseData UserProfilesResponse
-	if err := client.doRequest(req, &responseData); err != nil {
+	if err := c.doRequest(req, &responseData); err != nil {
 		return nil, fmt.Errorf("error fetching profiles: %w", err)
 	}
 

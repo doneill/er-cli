@@ -23,31 +23,37 @@ const API_USER_ME = API_USER + "/me"
 const API_USER_PROFILES = "/profiles"
 
 // ----------------------------------------------
-// Struct
+// struct
 // ----------------------------------------------
 
 type Client struct {
 	httpClient *http.Client
 	sitename   string
 	token      string
+	mockURL    string
 }
 
 // ----------------------------------------------
-// Functions
+// functions
 // ----------------------------------------------
 
-func ERClient(sitename, token string) *Client {
+func ERClient(sitename, token string, opts ...string) *Client {
+	mockURL := ""
+	if len(opts) > 0 {
+		mockURL = opts[0]
+	}
 	return &Client{
 		httpClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
 		sitename: sitename,
 		token:    token,
+		mockURL:  mockURL,
 	}
 }
 
 func (c *Client) newRequest(method, endpoint string, isAuth bool) (*http.Request, error) {
-	url := getApiUrl(c.sitename, endpoint)
+	url := getApiUrl(c.sitename, endpoint, c.mockURL)
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -88,16 +94,13 @@ func (c *Client) doRequest(req *http.Request, v interface{}) error {
 // Helper functions
 // ----------------------------------------------
 
-func getApiUrl(sitename string, endpoint string) string {
+func getApiUrl(sitename string, endpoint string, mockURL string) string {
+	if mockURL != "" {
+		return mockURL + endpoint
+	}
 	return fmt.Sprintf("https://%s%s%s", sitename, DOMAIN, endpoint)
 }
 
-func getAuthRequest(sitename string) (*http.Request, error) {
-	client := ERClient(sitename, "")
-	return client.newRequest("POST", API_AUTH, true)
-}
-
-func getClientRequest(sitename string, endpoint string, token string) (*http.Request, error) {
-	client := ERClient(sitename, token)
-	return client.newRequest("GET", endpoint, false)
+func getMockApiUrl(mocksite string, endpoint string) string {
+	return mocksite + endpoint
 }
