@@ -1,17 +1,14 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"strings"
 )
 
 // ----------------------------------------------
-// stucts
+// structs
 // ----------------------------------------------
-
 type AuthResponse struct {
 	AccessToken      string `json:"access_token"`
 	ExpiresIn        int    `json:"expires_in"`
@@ -22,38 +19,26 @@ type AuthResponse struct {
 }
 
 // ----------------------------------------------
-// exported funtions
+// exported functions
 // ----------------------------------------------
-
 func Authenticate(sitename, username, password string) (*AuthResponse, error) {
-	client := &http.Client{}
-	authReq, err := getAuthRequest(sitename)
-	if err != nil {
-		fmt.Println("Error generating auth client", err)
-	}
-	authReq.Body = io.NopCloser(
-		strings.NewReader(
-			fmt.Sprintf(
-				"username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password", username, password)))
+	client := ERClient(sitename, "")
 
-	res, err := client.Do(authReq)
+	req, err := client.newRequest("POST", API_AUTH, true)
 	if err != nil {
-		fmt.Println("Error making request:", err)
+		return nil, fmt.Errorf("error generating auth request: %w", err)
 	}
-	defer res.Body.Close()
+
+	authBody := fmt.Sprintf(
+		"username=%s&password=%s&client_id=er_mobile_tracker&grant_type=password",
+		username, password,
+	)
+	req.Body = io.NopCloser(strings.NewReader(authBody))
 
 	var responseData AuthResponse
-	err = json.NewDecoder(res.Body).Decode(&responseData)
-	if err != nil {
-		fmt.Println("Error decoding response:", err)
+	if err := client.doRequest(req, &responseData); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w", err)
 	}
 
-	if res.StatusCode == 200 {
-		return &responseData, nil
-	}
-
-	fmt.Println("Error:", res.StatusCode)
-	fmt.Println("Error Description:", responseData.ErrorDescription)
-
-	return nil, err
+	return &responseData, nil
 }

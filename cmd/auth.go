@@ -2,27 +2,26 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"strings"
-	"syscall"
-
 	"github.com/doneill/er-cli/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
+	"log"
+	"strings"
+	"syscall"
 )
 
 // ----------------------------------------------
 // static var
 // ----------------------------------------------
-
-var SITENAME string
-var USERNAME string
+var (
+	SITENAME string
+	USERNAME string
+)
 
 // ----------------------------------------------
 // auth command
 // ----------------------------------------------
-
 var authCmd = &cobra.Command{
 	Use:   "auth",
 	Short: "Authentication with EarthRanger",
@@ -35,36 +34,42 @@ var authCmd = &cobra.Command{
 // ----------------------------------------------
 // functions
 // ----------------------------------------------
-
 func auth() {
 	fmt.Println("Enter password:")
 	password, err := term.ReadPassword(int(syscall.Stdin))
-	passwordStr := strings.TrimSpace(string(password))
+	if err != nil {
+		log.Fatalf("Error reading password: %v", err)
+	}
 
+	passwordStr := strings.TrimSpace(string(password))
 	authResponse, err := api.Authenticate(SITENAME, USERNAME, passwordStr)
 	if err != nil {
-		fmt.Println("Error authenticating:", err)
-		os.Exit(1)
+		log.Fatalf("Error authenticating: %v", err)
 	}
 
-	if authResponse != nil {
-		viper.Set("user", USERNAME)
-		viper.Set("sitename", SITENAME)
-		viper.Set("oauth_token", authResponse.AccessToken)
-		viper.Set("expires", authResponse.ExpiresIn)
-		err := viper.WriteConfigAs(PROGRAM_NAME + CONFIG_TYPE)
-		if err != nil {
-			fmt.Println("Error writing configuration file:", err)
-		} else {
-			fmt.Println("Authenticated!")
-		}
+	if err := updateAuthConfig(authResponse); err != nil {
+		log.Fatalf("Error updating configuration: %v", err)
 	}
+
+	fmt.Println("Authenticated!")
+}
+
+func updateAuthConfig(authResponse *api.AuthResponse) error {
+	viper.Set("user", USERNAME)
+	viper.Set("sitename", SITENAME)
+	viper.Set("oauth_token", authResponse.AccessToken)
+	viper.Set("expires", authResponse.ExpiresIn)
+
+	if err := viper.WriteConfigAs(PROGRAM_NAME + CONFIG_TYPE); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+
+	return nil
 }
 
 // ----------------------------------------------
 // initialize
 // ----------------------------------------------
-
 func init() {
 	rootCmd.AddCommand(authCmd)
 	authCmd.Flags().StringVarP(&SITENAME, "sitename", "s", "", "EarthRanger site name")
