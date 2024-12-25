@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"net/url"
-	"time"
 )
 
 // ----------------------------------------------
@@ -11,12 +10,7 @@ import (
 // ----------------------------------------------
 
 type SubjectsResponse struct {
-	Data struct {
-		Count    int       `json:"count"`
-		Next     *string   `json:"next"`
-		Previous *string   `json:"previous"`
-		Results  []Subject `json:"results"`
-	} `json:"data"`
+	Data   []Subject `json:"data"`
 	Status struct {
 		Code    int    `json:"code"`
 		Message string `json:"message"`
@@ -68,16 +62,10 @@ type Coordinate struct {
 // Client methods
 // ----------------------------------------------
 
-func (c *Client) Subjects() (*SubjectsResponse, error) {
-	// Calculate date 3 days ago
-	threeDaysAgo := time.Now().AddDate(0, 0, -3).UTC()
-	updatedSince := threeDaysAgo.Format("2006-01-02T15:04:05.000")
-
-	// Create query parameters
+func (c *Client) Subjects(updatedSince string) (*SubjectsResponse, error) {
 	params := url.Values{}
 	params.Add("updated_since", updatedSince)
 
-	// Create URL with query parameters
 	endpoint := fmt.Sprintf("%s?%s", API_SUBJECTS, params.Encode())
 
 	req, err := c.newRequest("GET", endpoint, false)

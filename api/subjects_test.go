@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -11,35 +12,33 @@ import (
 func TestSubjects(t *testing.T) {
 	tests := []struct {
 		name           string
+		updatedSince   string
 		serverResponse *SubjectsResponse
 		statusCode     int
 		expectError    bool
 	}{
 		{
-			name: "successful response",
+			name:         "successful response",
+			updatedSince: time.Now().AddDate(0, 0, -3).UTC().Format("2006-01-02T15:04:05.000"),
 			serverResponse: &SubjectsResponse{
-				Data: struct {
-					Count    int       `json:"count"`
-					Next     *string   `json:"next"`
-					Previous *string   `json:"previous"`
-					Results  []Subject `json:"results"`
-				}{
-					Count: 1,
-					Results: []Subject{
-						{
-							ID: "123778d5-ffcc-4911-8d3b-e43cfdb426f7",
-							LastPosition: LastPosition{
-								Geometry: Geometry{
-									Coordinates: []float64{-121.6670876888658, 47.44309785582009},
-									Type:        "Point",
-								},
-								Type: "Feature",
+				Data: []Subject{
+					{
+						ID:   "123778d5-ffcc-4911-8d3b-e43cfdb426f7",
+						Name: "Test Subject",
+						LastPosition: LastPosition{
+							Geometry: Geometry{
+								Coordinates: []float64{-121.6670876888658, 47.44309785582009},
+								Type:        "Point",
 							},
-							LastPositionDate: "2024-12-23T18:34:51+00:00",
-							Name:             "Test Subject",
-							SubjectSubtype:   "ranger",
-							SubjectType:      "person",
+							Properties: Properties{
+								DateTime: "2024-12-23T18:34:51+00:00",
+								Title:    "Test Subject",
+							},
+							Type: "Feature",
 						},
+						LastPositionDate: "2024-12-23T18:34:51+00:00",
+						SubjectType:      "person",
+						SubjectSubtype:   "ranger",
 					},
 				},
 				Status: struct {
@@ -55,9 +54,26 @@ func TestSubjects(t *testing.T) {
 		},
 		{
 			name:           "server error",
+			updatedSince:   time.Now().AddDate(0, 0, -3).UTC().Format("2006-01-02T15:04:05.000"),
 			serverResponse: nil,
 			statusCode:     http.StatusInternalServerError,
 			expectError:    true,
+		},
+		{
+			name:         "empty response",
+			updatedSince: time.Now().AddDate(0, 0, -3).UTC().Format("2006-01-02T15:04:05.000"),
+			serverResponse: &SubjectsResponse{
+				Data: []Subject{},
+				Status: struct {
+					Code    int    `json:"code"`
+					Message string `json:"message"`
+				}{
+					Code:    200,
+					Message: "OK",
+				},
+			},
+			statusCode:  http.StatusOK,
+			expectError: false,
 		},
 	}
 
@@ -77,13 +93,8 @@ func TestSubjects(t *testing.T) {
 					t.Error("expected updated_since parameter, got none")
 				}
 
-				updatedSinceTime, err := time.Parse("2006-01-02T15:04:05.000", updatedSince)
-				if err != nil {
-					t.Errorf("invalid date format: %v", err)
-				}
-				expectedTime := time.Now().AddDate(0, 0, -3)
-				if updatedSinceTime.Day() != expectedTime.Day() {
-					t.Errorf("expected date around %v, got %v", expectedTime, updatedSinceTime)
+				if !strings.HasSuffix(r.URL.Path, API_SUBJECTS) {
+					t.Errorf("expected path to end with %s, got %s", API_SUBJECTS, r.URL.Path)
 				}
 
 				w.WriteHeader(tt.statusCode)
@@ -97,7 +108,7 @@ func TestSubjects(t *testing.T) {
 			defer server.Close()
 
 			client := ERClient("test", "testtoken", server.URL)
-			resp, err := client.Subjects()
+			resp, err := client.Subjects(tt.updatedSince)
 
 			if tt.expectError && err == nil {
 				t.Error("expected error, got nil")
@@ -106,19 +117,38 @@ func TestSubjects(t *testing.T) {
 				t.Errorf("unexpected error: %v", err)
 			}
 
-			if !tt.expectError {
+			if !tt.expectError && tt.serverResponse != nil {
 				if resp == nil {
 					t.Fatal("expected response, got nil")
 				}
-				if len(resp.Data.Results) != len(tt.serverResponse.Data.Results) {
+
+				if len(resp.Data) != len(tt.serverResponse.Data) {
 					t.Errorf("expected %d subjects, got %d",
-						len(tt.serverResponse.Data.Results), len(resp.Data.Results))
+						len(tt.serverResponse.Data), len(resp.Data))
 				}
-				if len(resp.Data.Results) > 0 {
-					if resp.Data.Results[0].ID != tt.serverResponse.Data.Results[0].ID {
+
+				if len(resp.Data) > 0 {
+					expectedSubject := tt.serverResponse.Data[0]
+					actualSubject := resp.Data[0]
+
+					if actualSubject.ID != expectedSubject.ID {
 						t.Errorf("expected subject ID %s, got %s",
-							tt.serverResponse.Data.Results[0].ID, resp.Data.Results[0].ID)
+							expectedSubject.ID, actualSubject.ID)
 					}
+
+					if actualSubject.Name != expectedSubject.Name {
+						t.Errorf("expected subject name %s, got %s",
+							expectedSubject.Name, actualSubject.Name)
+					}
+
+					if len(actualSubject.LastPosition.Geometry.Coordinates) != 2 {
+						t.Error("expected coordinates to have latitude and longitude")
+					}
+				}
+
+				if resp.Status.Code != tt.serverResponse.Status.Code {
+					t.Errorf("expected status code %d, got %d",
+						tt.serverResponse.Status.Code, resp.Status.Code)
 				}
 			}
 		})
