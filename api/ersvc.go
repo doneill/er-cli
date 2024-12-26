@@ -16,7 +16,11 @@ const API_V1 = "/api/v1.0"
 
 const API_AUTH = "/oauth2/token"
 
+const API_SUBJECT = API_V1 + "/subject"
+
 const API_SUBJECTS = API_V1 + "/subjects"
+
+const API_SUBJECT_TRACKS = "/tracks"
 
 const API_USER = API_V1 + "/user"
 
