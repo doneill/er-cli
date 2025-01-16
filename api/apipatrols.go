@@ -63,8 +63,13 @@ type DateRangeFilter struct {
 // Client methods
 // ----------------------------------------------
 
-func (c *Client) Patrols(days int) (*PatrolsResponse, error) {
-	var endpoint string
+func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
+	params := url.Values{}
+	params.Add("exclude_empty_patrols", "true")
+
+	if status != "" {
+		params.Add("status", status)
+	}
 
 	if days > 0 {
 		now := time.Now().UTC()
@@ -82,14 +87,10 @@ func (c *Client) Patrols(days int) (*PatrolsResponse, error) {
 			return nil, fmt.Errorf("failed to marshal date filter: %w", err)
 		}
 
-		params := url.Values{}
 		params.Add("filter", string(filterJSON))
-		params.Add("exclude_empty_patrols", "true")
-
-		endpoint = fmt.Sprintf("%s?%s", API_PATROLS, params.Encode())
-	} else {
-		endpoint = fmt.Sprintf("%s?exclude_empty_patrols=true", API_PATROLS)
 	}
+
+	endpoint := fmt.Sprintf("%s?%s", API_PATROLS, params.Encode())
 
 	req, err := c.newRequest("GET", endpoint, false)
 	if err != nil {

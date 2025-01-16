@@ -12,7 +12,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var days int
+var (
+	days   int
+	status string
+)
+
+var validStatuses = map[string]bool{
+	"active":    true,
+	"done":      true,
+	"cancelled": true,
+}
 
 // ----------------------------------------------
 // patrols command
@@ -22,6 +31,14 @@ var patrolsCmd = &cobra.Command{
 	Use:   "patrols",
 	Short: "Get patrols data",
 	Long:  `Return patrol data including serial number, state, ID, location, and time information`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if status != "" {
+			if !validStatuses[status] {
+				return fmt.Errorf("invalid status value: %s\nValid status values are: active, done, cancelled", status)
+			}
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		patrols()
 	},
@@ -37,7 +54,7 @@ func patrols() {
 }
 
 func handlePatrols(client *api.Client) {
-	patrolsResponse, err := client.Patrols(days)
+	patrolsResponse, err := client.Patrols(days, status)
 	if err != nil {
 		log.Fatalf("Error getting patrols: %v", err)
 	}
@@ -138,5 +155,6 @@ func configurePatrolsTable() *tablewriter.Table {
 
 func init() {
 	rootCmd.AddCommand(patrolsCmd)
-	patrolsCmd.Flags().IntVarP(&days, "days", "d", 0, "Number of days to fetch patrols for (defaults to all)")
+	patrolsCmd.Flags().IntVarP(&days, "days", "d", 7, "Number of days to fetch patrols for")
+	patrolsCmd.Flags().StringVarP(&status, "status", "s", "", "Patrol status (active, done, or cancelled)")
 }
