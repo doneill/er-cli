@@ -16,6 +16,10 @@ const API_V1 = "/api/v1.0"
 
 const API_AUTH = "/oauth2/token"
 
+const API_ACTIVITY = API_V1 + "/activity"
+
+const API_PATROLS = API_ACTIVITY + "/patrols"
+
 const API_SUBJECT = API_V1 + "/subject"
 
 const API_SUBJECTS = API_V1 + "/subjects"
