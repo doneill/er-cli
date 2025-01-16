@@ -11,15 +11,18 @@ import (
 
 func TestPatrols(t *testing.T) {
 	tests := []struct {
-		name           string
-		days           int
-		mockResponse   string
-		expectedError  bool
-		validateResult func(*testing.T, *PatrolsResponse)
+		name            string
+		days            int
+		status          string
+		mockResponse    string
+		expectedError   bool
+		validateResult  func(*testing.T, *PatrolsResponse)
+		validateRequest func(*testing.T, *http.Request)
 	}{
 		{
-			name: "successful response without date filter",
-			days: 0,
+			name:   "successful response without filters",
+			days:   0,
+			status: "",
 			mockResponse: `{
                 "data": {
                     "count": 1,
@@ -51,6 +54,17 @@ func TestPatrols(t *testing.T) {
                 }
             }`,
 			expectedError: false,
+			validateRequest: func(t *testing.T, r *http.Request) {
+				if !strings.Contains(r.URL.String(), "exclude_empty_patrols=true") {
+					t.Error("Expected exclude_empty_patrols parameter")
+				}
+				if strings.Contains(r.URL.String(), "status=") {
+					t.Error("Unexpected status parameter")
+				}
+				if strings.Contains(r.URL.String(), "filter=") {
+					t.Error("Unexpected filter parameter")
+				}
+			},
 			validateResult: func(t *testing.T, response *PatrolsResponse) {
 				if response == nil {
 					t.Fatal("Expected non-nil response")
@@ -77,8 +91,9 @@ func TestPatrols(t *testing.T) {
 			},
 		},
 		{
-			name: "successful response with date filter",
-			days: 7,
+			name:   "successful response with date filter",
+			days:   7,
+			status: "",
 			mockResponse: `{
                 "data": {
                     "count": 1,
@@ -96,6 +111,17 @@ func TestPatrols(t *testing.T) {
                 }
             }`,
 			expectedError: false,
+			validateRequest: func(t *testing.T, r *http.Request) {
+				if !strings.Contains(r.URL.String(), "exclude_empty_patrols=true") {
+					t.Error("Expected exclude_empty_patrols parameter")
+				}
+				if !strings.Contains(r.URL.String(), "filter=") {
+					t.Error("Expected filter parameter")
+				}
+				if !strings.Contains(r.URL.String(), "patrols_overlap_daterange") {
+					t.Error("Expected patrols_overlap_daterange in filter")
+				}
+			},
 			validateResult: func(t *testing.T, response *PatrolsResponse) {
 				if response == nil {
 					t.Fatal("Expected non-nil response")
@@ -106,10 +132,60 @@ func TestPatrols(t *testing.T) {
 			},
 		},
 		{
-			name:           "error response",
-			days:           0,
-			mockResponse:   `{"status": {"code": 500, "message": "Internal Server Error"}}`,
-			expectedError:  true,
+			name:   "successful response with status filter",
+			days:   7,
+			status: "active",
+			mockResponse: `{
+                "data": {
+                    "count": 1,
+                    "results": [
+                        {
+                            "id": "test789",
+                            "serial_number": 1003,
+                            "state": "active"
+                        }
+                    ]
+                },
+                "status": {
+                    "code": 200,
+                    "message": "OK"
+                }
+            }`,
+			expectedError: false,
+			validateRequest: func(t *testing.T, r *http.Request) {
+				if !strings.Contains(r.URL.String(), "exclude_empty_patrols=true") {
+					t.Error("Expected exclude_empty_patrols parameter")
+				}
+				if !strings.Contains(r.URL.String(), "status=active") {
+					t.Error("Expected status parameter")
+				}
+				if !strings.Contains(r.URL.String(), "filter=") {
+					t.Error("Expected filter parameter")
+				}
+			},
+			validateResult: func(t *testing.T, response *PatrolsResponse) {
+				if response == nil {
+					t.Fatal("Expected non-nil response")
+				}
+				if len(response.Data.Results) != 1 {
+					t.Errorf("Expected 1 result, got %d", len(response.Data.Results))
+				}
+				if response.Data.Results[0].State != "active" {
+					t.Errorf("Expected state 'active', got '%s'", response.Data.Results[0].State)
+				}
+			},
+		},
+		{
+			name:          "error response",
+			days:          0,
+			status:        "",
+			mockResponse:  `{"status": {"code": 500, "message": "Internal Server Error"}}`,
+			expectedError: true,
+			validateRequest: func(t *testing.T, r *http.Request) {
+				if !strings.Contains(r.URL.String(), "exclude_empty_patrols=true") {
+					t.Error("Expected exclude_empty_patrols parameter")
+				}
+			},
 			validateResult: nil,
 		},
 	}
@@ -122,13 +198,8 @@ func TestPatrols(t *testing.T) {
 					t.Errorf("Expected GET request, got %s", r.Method)
 				}
 
-				if tt.days > 0 {
-					if !strings.Contains(r.URL.String(), "filter=") {
-						t.Error("Expected filter parameter in URL for date-filtered request")
-					}
-					if !strings.Contains(r.URL.String(), "patrols_overlap_daterange") {
-						t.Error("Expected patrols_overlap_daterange in filter")
-					}
+				if tt.validateRequest != nil {
+					tt.validateRequest(t, r)
 				}
 
 				// Return mock response
@@ -143,7 +214,7 @@ func TestPatrols(t *testing.T) {
 			defer server.Close()
 
 			client := ERClient("test", "test-token", server.URL)
-			response, err := client.Patrols(tt.days)
+			response, err := client.Patrols(tt.days, tt.status)
 
 			if tt.expectedError {
 				if err == nil {
@@ -203,7 +274,7 @@ func TestDateRangeFilter(t *testing.T) {
 	defer server.Close()
 
 	client := ERClient("test", "test-token", server.URL)
-	_, err := client.Patrols(7)
+	_, err := client.Patrols(7, "")
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
