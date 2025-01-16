@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/doneill/er-cli/api"
 	"github.com/doneill/er-cli/config"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
+
+var days int
 
 // ----------------------------------------------
 // patrols command
@@ -34,7 +37,7 @@ func patrols() {
 }
 
 func handlePatrols(client *api.Client) {
-	patrolsResponse, err := client.Patrols()
+	patrolsResponse, err := client.Patrols(days)
 	if err != nil {
 		log.Fatalf("Error getting patrols: %v", err)
 	}
@@ -51,6 +54,19 @@ func handlePatrols(client *api.Client) {
 	table.Render()
 }
 
+func formatTime(timeStr *string) string {
+	if timeStr == nil {
+		return "N/A"
+	}
+
+	t, err := time.Parse(time.RFC3339, *timeStr)
+	if err != nil {
+		return "Invalid Time"
+	}
+
+	return t.Format("02 Jan 15:04")
+}
+
 func formatPatrolData(patrol *api.Patrol) []string {
 	leader := "N/A"
 	location := "N/A"
@@ -62,7 +78,7 @@ func formatPatrolData(patrol *api.Patrol) []string {
 
 		if segment.Leader != nil {
 			l := segment.Leader
-			leader = fmt.Sprintf("%s %s (%s)", l.FirstName, l.LastName, l.Username)
+			leader = l.Name
 		}
 
 		if segment.StartLocation != nil {
@@ -71,12 +87,8 @@ func formatPatrolData(patrol *api.Patrol) []string {
 				segment.StartLocation.Longitude)
 		}
 
-		if segment.TimeRange.StartTime != nil {
-			startTime = *segment.TimeRange.StartTime
-		}
-		if segment.TimeRange.EndTime != nil {
-			endTime = *segment.TimeRange.EndTime
-		}
+		startTime = formatTime(segment.TimeRange.StartTime)
+		endTime = formatTime(segment.TimeRange.EndTime)
 	}
 
 	title := "N/A"
@@ -126,4 +138,5 @@ func configurePatrolsTable() *tablewriter.Table {
 
 func init() {
 	rootCmd.AddCommand(patrolsCmd)
+	patrolsCmd.Flags().IntVarP(&days, "days", "d", 0, "Number of days to fetch patrols for (defaults to all)")
 }
