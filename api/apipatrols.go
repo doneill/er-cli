@@ -35,7 +35,19 @@ type PatrolSegment struct {
 		LastName  string `json:"last_name"`
 		Username  string `json:"username"`
 	} `json:"leader"`
-	PatrolType string `json:"patrol_type"`
+	PatrolType    string    `json:"patrol_type"`
+	StartLocation *Location `json:"start_location"`
+	TimeRange     TimeRange `json:"time_range"`
+}
+
+type Location struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type TimeRange struct {
+	StartTime *string `json:"start_time"`
+	EndTime   *string `json:"end_time"`
 }
 
 // ----------------------------------------------
@@ -43,7 +55,9 @@ type PatrolSegment struct {
 // ----------------------------------------------
 
 func (c *Client) Patrols() (*PatrolsResponse, error) {
-	req, err := c.newRequest("GET", API_PATROLS, false)
+	endpoint := fmt.Sprintf("%s?exclude_empty_patrols=true", API_PATROLS)
+
+	req, err := c.newRequest("GET", endpoint, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create patrols request: %w", err)
 	}
