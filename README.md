@@ -67,6 +67,35 @@ er user
 | cccy     |                      | CC         |  CY       | 015945ff-c220-4674-a070-3f1112e445fg |      | 12c245f6-8d77-4e15-a82c-be4a717034df |
 ```
 
+### Patrols
+
+```bash
+Return patrol data including serial number, state, ID, location, and time information
+
+Usage:
+  er patrols [flags]
+
+Flags:
+  -d, --days int        Number of days to fetch patrols for (default 7)
+  -h, --help            help for patrols
+  -s, --status string   Patrol status (active, done, or cancelled)
+```
+
+### Subjects
+```bash
+Return subject data and tracks updated within specified number of days ago
+
+Usage:
+  er subjects [flags]
+
+Flags:
+  -e, --export              Export tracks to GeoJSON file
+  -h, --help                help for subjects
+  -s, --subject-id string   Subject ID for tracks query
+  -t, --tracks              Get tracks for a subject
+  -u, --updated-since int   Number of days ago to query updates from (default 3)
+```
+
 ## Local Database Commands
 These commands allow you to work with an exported EarthRanger mobile databse
 
