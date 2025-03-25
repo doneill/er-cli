@@ -17,6 +17,8 @@ Available Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
   open        Open a SQLite database file
+  patrols     Get patrols data
+  subjects    Get subjects data and tracks
   user        Current authenticated user data
 
 Flags:
