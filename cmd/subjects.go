@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/doneill/er-cli/api"
 	"github.com/doneill/er-cli/config"
+	"github.com/doneill/er-cli/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -66,29 +66,13 @@ func handleTracks(client *api.Client) {
 		return
 	}
 
-	// Create a GeoJSON structure
-	geoJSON := struct {
-		Type     string        `json:"type"`
-		Features []api.Feature `json:"features"`
-	}{
-		Type:     tracksResponse.Data.Type,
-		Features: tracksResponse.Data.Features,
-	}
-
-	// Marshal to JSON with indentation
-	jsonData, err := json.MarshalIndent(geoJSON, "", "    ")
-	if err != nil {
-		log.Fatalf("Error formatting JSON: %v", err)
-	}
-
+	var filename string
 	if export {
-		filename := fmt.Sprintf("%s.geojson", subjectID)
-		if err := os.WriteFile(filename, jsonData, 0644); err != nil {
-			log.Fatalf("Error writing file: %v", err)
-		}
-		fmt.Printf("Successfully exported tracks to %s\n", filename)
-	} else {
-		fmt.Println(string(jsonData))
+		filename = fmt.Sprintf("%s.geojson", subjectID)
+	}
+
+	if err := utils.ExportToFile(tracksResponse.Data, filename); err != nil {
+		log.Fatalf("Error exporting GeoJSON: %v", err)
 	}
 }
 
