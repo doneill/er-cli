@@ -66,41 +66,12 @@ func handleTracks(client *api.Client) {
 		return
 	}
 
-	var geoJSONFeatures []utils.Feature
-	for _, feature := range tracksResponse.Data.Features {
-		geoJSONFeature := utils.Feature{
-			Type: feature.Type,
-			Geometry: utils.Geometry{
-				Type:        feature.Geometry.Type,
-				Coordinates: feature.Geometry.Coordinates,
-			},
-			Properties: map[string]interface{}{
-				"id":                       feature.Properties.ID,
-				"title":                    feature.Properties.Title,
-				"subject_type":             feature.Properties.SubjectType,
-				"subject_subtype":          feature.Properties.SubjectSubtype,
-				"stroke":                   feature.Properties.Stroke,
-				"stroke_opacity":           feature.Properties.StrokeOpacity,
-				"stroke_width":             feature.Properties.StrokeWidth,
-				"coordinate_properties":    feature.Properties.CoordinateProperties,
-				"image":                    feature.Properties.Image,
-				"radio_state":              feature.Properties.RadioState,
-				"radio_state_at":           feature.Properties.RadioStateAt,
-				"last_voice_call_start_at": feature.Properties.LastVoiceCallStartAt,
-				"location_requested_at":    feature.Properties.LocationRequestedAt,
-			},
-		}
-		geoJSONFeatures = append(geoJSONFeatures, geoJSONFeature)
-	}
-
-	featureCollection := utils.NewFeatureCollection(geoJSONFeatures)
-
 	var filename string
 	if export {
 		filename = fmt.Sprintf("%s.geojson", subjectID)
 	}
 
-	if err := utils.ExportToFile(featureCollection, filename); err != nil {
+	if err := utils.ExportToFile(tracksResponse.Data, filename); err != nil {
 		log.Fatalf("Error exporting GeoJSON: %v", err)
 	}
 }
