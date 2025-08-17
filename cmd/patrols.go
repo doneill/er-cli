@@ -37,6 +37,12 @@ var patrolsCmd = &cobra.Command{
 				return fmt.Errorf("invalid status value: %s\nValid status values are: active, done, cancelled", status)
 			}
 		}
+		if days > 30 {
+			return fmt.Errorf("days value cannot exceed 30 (got %d)", days)
+		}
+		if days < 0 {
+			return fmt.Errorf("days value must be positive (got %d)", days)
+		}
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
