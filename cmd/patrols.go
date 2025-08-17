@@ -86,7 +86,8 @@ func formatTime(timeStr *string) string {
 
 func formatPatrolData(patrol *api.Patrol) []string {
 	leader := "N/A"
-	location := "N/A"
+	startLocation := "N/A"
+	endLocation := "N/A"
 	startTime := "N/A"
 	endTime := "N/A"
 	segmentID := "N/A"
@@ -101,9 +102,15 @@ func formatPatrolData(patrol *api.Patrol) []string {
 		}
 
 		if segment.StartLocation != nil {
-			location = fmt.Sprintf("%.6f, %.6f",
+			startLocation = fmt.Sprintf("%.6f, %.6f",
 				segment.StartLocation.Latitude,
 				segment.StartLocation.Longitude)
+		}
+
+		if segment.EndLocation != nil {
+			endLocation = fmt.Sprintf("%.6f, %.6f",
+				segment.EndLocation.Latitude,
+				segment.EndLocation.Longitude)
 		}
 
 		startTime = formatTime(segment.TimeRange.StartTime)
@@ -122,7 +129,8 @@ func formatPatrolData(patrol *api.Patrol) []string {
 		segmentID,
 		title,
 		leader,
-		location,
+		startLocation,
+		endLocation,
 		startTime,
 		endTime,
 	}
@@ -138,6 +146,7 @@ func configurePatrolsTable() *tablewriter.Table {
 		"Title",
 		"Leader",
 		"Start Location",
+		"End Location",
 		"Start Time",
 		"End Time",
 	})
