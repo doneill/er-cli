@@ -33,7 +33,7 @@ type Patrol struct {
 }
 
 type PatrolSegment struct {
-	ID            string    `json:"id"`
+	ID     string `json:"id"`
 	Leader *struct {
 		Name string `json:"name"`
 	} `json:"leader"`
@@ -68,6 +68,7 @@ type DateRangeFilter struct {
 func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
 	params := url.Values{}
 	params.Add("exclude_empty_patrols", "true")
+	params.Add("page_size", "200")
 
 	if status != "" {
 		params.Add("status", status)

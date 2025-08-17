@@ -1,15 +1,20 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 )
 
 // ----------------------------------------------
 // const endpoints
 // ----------------------------------------------
+
 const DOMAIN = ".pamdas.org"
 
 const API_V1 = "/api/v1.0"
@@ -85,7 +90,7 @@ func (c *Client) newRequest(method, endpoint string, isAuth bool) (*http.Request
 func (c *Client) doRequest(req *http.Request, v interface{}) error {
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to make request: %w", err)
+		return c.handleRequestError(err)
 	}
 	defer resp.Body.Close()
 
@@ -98,6 +103,36 @@ func (c *Client) doRequest(req *http.Request, v interface{}) error {
 	}
 
 	return nil
+}
+
+func (c *Client) handleRequestError(err error) error {
+	// Check for timeout errors
+	if os.IsTimeout(err) {
+		return fmt.Errorf("request timed out - try reducing the requested data and/or check your network connection")
+	}
+
+	// Check for context deadline exceeded (another form of timeout)
+	if err == context.DeadlineExceeded || strings.Contains(err.Error(), "context deadline exceeded") {
+		return fmt.Errorf("request timed out - try reducing the date range with --days or check your network connection")
+	}
+
+	// Check for network timeout specifically
+	if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+		return fmt.Errorf("network timeout - try reducing the date range with --days or check your network connection")
+	}
+
+	// Check for DNS resolution errors
+	if strings.Contains(err.Error(), "no such host") {
+		return fmt.Errorf("unable to connect to EarthRanger server - check your network connection and site name")
+	}
+
+	// Check for connection refused
+	if strings.Contains(err.Error(), "connection refused") {
+		return fmt.Errorf("connection refused - check your network connection and EarthRanger server status")
+	}
+
+	// Default error message for other request failures
+	return fmt.Errorf("failed to connect to EarthRanger server: %v", err)
 }
 
 // ----------------------------------------------
