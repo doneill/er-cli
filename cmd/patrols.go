@@ -126,13 +126,13 @@ func formatPatrolData(patrol *api.Patrol) []string {
 		fmt.Sprintf("%d", patrol.SerialNumber),
 		patrol.State,
 		patrol.ID,
-		segmentID,
 		title,
 		leader,
 		startLocation,
 		endLocation,
 		startTime,
 		endTime,
+		segmentID,
 	}
 }
 
@@ -142,13 +142,13 @@ func configurePatrolsTable() *tablewriter.Table {
 		"Serial",
 		"State",
 		"ID",
-		"Segment ID",
 		"Title",
 		"Leader",
 		"Start Location",
 		"End Location",
 		"Start Time",
 		"End Time",
+		"Segment ID",
 	})
 	table.SetBorders(tablewriter.Border{
 		Left:   true,
