@@ -36,12 +36,14 @@ func TestPatrols(t *testing.T) {
                             "title": "Test Patrol",
                             "patrol_segments": [
                                 {
+                                    "id": "segment123",
                                     "leader": {"name": "John Doe"},
                                     "patrol_type": "boat_patrol",
                                     "start_location": {"latitude": 1.234, "longitude": 5.678},
+                                    "end_location": null,
                                     "time_range": {
                                         "start_time": "2025-01-15T10:00:00.000Z",
-                                        "end_time": "2025-01-15T11:00:00.000Z"
+                                        "end_time": null
                                     }
                                 }
                             ]
@@ -82,16 +84,27 @@ func TestPatrols(t *testing.T) {
 				if len(patrol.PatrolSegments) == 0 {
 					t.Fatal("Expected at least one patrol segment")
 				}
-				if patrol.PatrolSegments[0].Leader == nil {
+				segment := patrol.PatrolSegments[0]
+				if segment.ID != "segment123" {
+					t.Errorf("Expected segment ID 'segment123', got '%s'", segment.ID)
+				}
+				if segment.Leader == nil {
 					t.Fatal("Expected non-nil leader")
 				}
-				if patrol.PatrolSegments[0].Leader.Name != "John Doe" {
-					t.Errorf("Expected leader name 'John Doe', got '%s'", patrol.PatrolSegments[0].Leader.Name)
+				if segment.Leader.Name != "John Doe" {
+					t.Errorf("Expected leader name 'John Doe', got '%s'", segment.Leader.Name)
+				}
+				// Open patrol should not have end location or end time
+				if segment.EndLocation != nil {
+					t.Error("Expected nil end location for open patrol")
+				}
+				if segment.TimeRange.EndTime != nil {
+					t.Error("Expected nil end time for open patrol")
 				}
 			},
 		},
 		{
-			name:   "successful response with date filter",
+			name:   "successful response with done patrol having end location and time",
 			days:   7,
 			status: "",
 			mockResponse: `{
@@ -101,7 +114,21 @@ func TestPatrols(t *testing.T) {
                         {
                             "id": "test456",
                             "serial_number": 1002,
-                            "state": "closed"
+                            "state": "done",
+                            "title": "Completed Patrol",
+                            "patrol_segments": [
+                                {
+                                    "id": "segment456",
+                                    "leader": {"name": "Jane Smith"},
+                                    "patrol_type": "foot_patrol",
+                                    "start_location": {"latitude": 2.345, "longitude": 6.789},
+                                    "end_location": {"latitude": 2.355, "longitude": 6.799},
+                                    "time_range": {
+                                        "start_time": "2025-01-15T10:00:00.000Z",
+                                        "end_time": "2025-01-15T14:00:00.000Z"
+                                    }
+                                }
+                            ]
                         }
                     ]
                 },
@@ -129,6 +156,33 @@ func TestPatrols(t *testing.T) {
 				if len(response.Data.Results) != 1 {
 					t.Errorf("Expected 1 result, got %d", len(response.Data.Results))
 				}
+				patrol := response.Data.Results[0]
+				if patrol.State != "done" {
+					t.Errorf("Expected state 'done', got '%s'", patrol.State)
+				}
+				if len(patrol.PatrolSegments) == 0 {
+					t.Fatal("Expected at least one patrol segment")
+				}
+				segment := patrol.PatrolSegments[0]
+				if segment.ID != "segment456" {
+					t.Errorf("Expected segment ID 'segment456', got '%s'", segment.ID)
+				}
+				// Done patrol should have end location and end time
+				if segment.EndLocation == nil {
+					t.Fatal("Expected non-nil end location for done patrol")
+				}
+				if segment.EndLocation.Latitude != 2.355 {
+					t.Errorf("Expected end latitude 2.355, got %f", segment.EndLocation.Latitude)
+				}
+				if segment.EndLocation.Longitude != 6.799 {
+					t.Errorf("Expected end longitude 6.799, got %f", segment.EndLocation.Longitude)
+				}
+				if segment.TimeRange.EndTime == nil {
+					t.Fatal("Expected non-nil end time for done patrol")
+				}
+				if *segment.TimeRange.EndTime != "2025-01-15T14:00:00.000Z" {
+					t.Errorf("Expected end time '2025-01-15T14:00:00.000Z', got '%s'", *segment.TimeRange.EndTime)
+				}
 			},
 		},
 		{
@@ -142,7 +196,19 @@ func TestPatrols(t *testing.T) {
                         {
                             "id": "test789",
                             "serial_number": 1003,
-                            "state": "active"
+                            "state": "active",
+                            "patrol_segments": [
+                                {
+                                    "id": "segment789",
+                                    "patrol_type": "vehicle_patrol",
+                                    "start_location": {"latitude": 3.456, "longitude": 7.890},
+                                    "end_location": null,
+                                    "time_range": {
+                                        "start_time": "2025-01-15T08:00:00.000Z",
+                                        "end_time": null
+                                    }
+                                }
+                            ]
                         }
                     ]
                 },
@@ -170,8 +236,23 @@ func TestPatrols(t *testing.T) {
 				if len(response.Data.Results) != 1 {
 					t.Errorf("Expected 1 result, got %d", len(response.Data.Results))
 				}
-				if response.Data.Results[0].State != "active" {
-					t.Errorf("Expected state 'active', got '%s'", response.Data.Results[0].State)
+				patrol := response.Data.Results[0]
+				if patrol.State != "active" {
+					t.Errorf("Expected state 'active', got '%s'", patrol.State)
+				}
+				if len(patrol.PatrolSegments) == 0 {
+					t.Fatal("Expected at least one patrol segment")
+				}
+				segment := patrol.PatrolSegments[0]
+				if segment.ID != "segment789" {
+					t.Errorf("Expected segment ID 'segment789', got '%s'", segment.ID)
+				}
+				// Active patrol should not have end location or end time
+				if segment.EndLocation != nil {
+					t.Error("Expected nil end location for active patrol")
+				}
+				if segment.TimeRange.EndTime != nil {
+					t.Error("Expected nil end time for active patrol")
 				}
 			},
 		},
