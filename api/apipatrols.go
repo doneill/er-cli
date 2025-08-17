@@ -33,12 +33,13 @@ type Patrol struct {
 }
 
 type PatrolSegment struct {
-	ID     string `json:"id"`
+	ID            string    `json:"id"`
 	Leader *struct {
 		Name string `json:"name"`
 	} `json:"leader"`
 	PatrolType    string    `json:"patrol_type"`
 	StartLocation *Location `json:"start_location"`
+	EndLocation   *Location `json:"end_location"`
 	TimeRange     TimeRange `json:"time_range"`
 }
 
