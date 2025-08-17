@@ -33,6 +33,7 @@ type Patrol struct {
 }
 
 type PatrolSegment struct {
+	ID     string `json:"id"`
 	Leader *struct {
 		Name string `json:"name"`
 	} `json:"leader"`

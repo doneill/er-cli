@@ -89,9 +89,11 @@ func formatPatrolData(patrol *api.Patrol) []string {
 	location := "N/A"
 	startTime := "N/A"
 	endTime := "N/A"
+	segmentID := "N/A"
 
 	if len(patrol.PatrolSegments) > 0 {
 		segment := patrol.PatrolSegments[0]
+		segmentID = segment.ID
 
 		if segment.Leader != nil {
 			l := segment.Leader
@@ -117,6 +119,7 @@ func formatPatrolData(patrol *api.Patrol) []string {
 		fmt.Sprintf("%d", patrol.SerialNumber),
 		patrol.State,
 		patrol.ID,
+		segmentID,
 		title,
 		leader,
 		location,
@@ -131,6 +134,7 @@ func configurePatrolsTable() *tablewriter.Table {
 		"Serial",
 		"State",
 		"ID",
+		"Segment ID",
 		"Title",
 		"Leader",
 		"Start Location",
