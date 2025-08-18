@@ -107,3 +107,20 @@ func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
 
 	return &response, nil
 }
+func (c *Client) PatrolTracks(subjectID string, since string, until string) (*TracksResponse, error) {
+	params := url.Values{}
+	params.Add("since", since)
+	params.Add("until", until)
+	endpoint := path.Join(API_SUBJECT, subjectID, API_SUBJECT_TRACKS)
+	endpoint = fmt.Sprintf("%s?%s", endpoint, params.Encode())
+	req, err := c.newRequest("GET", endpoint, false)
+	if err != nil {
+		return nil, fmt.Errorf("error generating patrol tracks request: %w", err)
+	}
+	var responseData TracksResponse
+	if err := c.doRequest(req, &responseData); err != nil {
+		return nil, fmt.Errorf("error fetching patrol tracks: %w", err)
+	}
+}
+
+	return &responseData, nil
