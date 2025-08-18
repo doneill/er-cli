@@ -102,10 +102,7 @@ func formatPatrolData(patrol *api.Patrol) []string {
 		segment := patrol.PatrolSegments[0]
 		segmentID = segment.ID
 
-		if segment.Leader != nil {
-			l := segment.Leader
-			leader = l.Name
-		}
+		leader = segment.Leader.Name
 
 		if segment.StartLocation != nil {
 			startLocation = fmt.Sprintf("%.6f, %.6f",
