@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"path"
 	"time"
 )
 
@@ -24,23 +25,44 @@ type PatrolsResponse struct {
 	} `json:"status"`
 }
 
-type Patrol struct {
-	ID             string          `json:"id"`
-	SerialNumber   int             `json:"serial_number"`
-	State          string          `json:"state"`
-	Title          *string         `json:"title"`
-	PatrolSegments []PatrolSegment `json:"patrol_segments"`
+type PatrolByIDResponse struct {
+	Data   PatrolDetails `json:"data"`
+	Status struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	} `json:"status"`
 }
 
-type PatrolSegment struct {
-	ID     string `json:"id"`
-	Leader *struct {
-		Name string `json:"name"`
-	} `json:"leader"`
-	PatrolType    string    `json:"patrol_type"`
-	StartLocation *Location `json:"start_location"`
-	EndLocation   *Location `json:"end_location"`
-	TimeRange     TimeRange `json:"time_range"`
+type Patrol struct {
+	ID             string                  `json:"id"`
+	SerialNumber   int                     `json:"serial_number"`
+	State          string                  `json:"state"`
+	Title          *string                 `json:"title"`
+	PatrolSegments []PatrolSegmentDetails `json:"patrol_segments"`
+}
+
+type PatrolDetails struct {
+	ID             string                 `json:"id"`
+	SerialNumber   int                    `json:"serial_number"`
+	State          string                 `json:"state"`
+	Title          string                 `json:"title"`
+	PatrolSegments []PatrolSegmentDetails `json:"patrol_segments"`
+}
+
+type PatrolSegmentDetails struct {
+	ID            string       `json:"id"`
+	Leader        PatrolLeader `json:"leader"`
+	PatrolType    string       `json:"patrol_type"`
+	StartLocation *Location    `json:"start_location"`
+	EndLocation   *Location    `json:"end_location"`
+	TimeRange     TimeRange    `json:"time_range"`
+}
+
+type PatrolLeader struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	SubjectType    string `json:"subject_type"`
+	SubjectSubtype string `json:"subject_subtype"`
 }
 
 type Location struct {
@@ -106,4 +128,41 @@ func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
 	}
 
 	return &response, nil
+}
+
+func (c *Client) PatrolTracks(subjectID string, since string, until string) (*TracksResponse, error) {
+	params := url.Values{}
+	params.Add("since", since)
+	params.Add("until", until)
+
+	endpoint := path.Join(API_SUBJECT, subjectID, API_SUBJECT_TRACKS)
+	endpoint = fmt.Sprintf("%s?%s", endpoint, params.Encode())
+
+	req, err := c.newRequest("GET", endpoint, false)
+	if err != nil {
+		return nil, fmt.Errorf("error generating patrol tracks request: %w", err)
+	}
+
+	var responseData TracksResponse
+	if err := c.doRequest(req, &responseData); err != nil {
+		return nil, fmt.Errorf("error fetching patrol tracks: %w", err)
+	}
+
+	return &responseData, nil
+}
+
+func (c *Client) PatrolByID(patrolID string) (*PatrolByIDResponse, error) {
+	endpoint := fmt.Sprintf("%s/%s", API_PATROLS, patrolID)
+
+	req, err := c.newRequest("GET", endpoint, false)
+	if err != nil {
+		return nil, fmt.Errorf("error generating patrol by ID request: %w", err)
+	}
+
+	var responseData PatrolByIDResponse
+	if err := c.doRequest(req, &responseData); err != nil {
+		return nil, fmt.Errorf("error fetching patrol by ID: %w", err)
+	}
+
+	return &responseData, nil
 }

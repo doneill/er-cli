@@ -81,7 +81,8 @@ func (c *Client) newRequest(method, endpoint string, isAuth bool) (*http.Request
 	} else {
 		// Regular API request headers
 		req.Header.Set("Authorization", "Bearer "+c.token)
-		req.Header.Set("Cache-control", "no-cache")
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; er-cli)")
 	}
 
 	return req, nil

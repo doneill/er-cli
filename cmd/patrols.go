@@ -8,6 +8,7 @@ import (
 
 	"github.com/doneill/er-cli/api"
 	"github.com/doneill/er-cli/config"
+	"github.com/doneill/er-cli/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -15,6 +16,7 @@ import (
 var (
 	days   int
 	status string
+	track  string
 )
 
 var validStatuses = map[string]bool{
@@ -46,7 +48,11 @@ var patrolsCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		patrols()
+		if track != "" {
+			patrolTrack()
+		} else {
+			patrols()
+		}
 	},
 }
 
@@ -102,10 +108,7 @@ func formatPatrolData(patrol *api.Patrol) []string {
 		segment := patrol.PatrolSegments[0]
 		segmentID = segment.ID
 
-		if segment.Leader != nil {
-			l := segment.Leader
-			leader = l.Name
-		}
+		leader = segment.Leader.Name
 
 		if segment.StartLocation != nil {
 			startLocation = fmt.Sprintf("%.6f, %.6f",
@@ -168,6 +171,65 @@ func configurePatrolsTable() *tablewriter.Table {
 	return table
 }
 
+func patrolTrack() {
+	client := api.ERClient(config.Sitename(), config.Token())
+	handlePatrolTrack(client)
+}
+
+func handlePatrolTrack(client *api.Client) {
+	// First get the patrol details
+	patrolResponse, err := client.PatrolByID(track)
+	if err != nil {
+		log.Fatalf("Error getting patrol: %v", err)
+	}
+
+	if len(patrolResponse.Data.PatrolSegments) == 0 {
+		fmt.Println("No patrol segments found for this patrol")
+		return
+	}
+
+	// Get the first segment
+	segment := patrolResponse.Data.PatrolSegments[0]
+	
+	if segment.TimeRange.StartTime == nil {
+		fmt.Println("No start time found for patrol segment")
+		return
+	}
+
+	// Determine end time - use current time if patrol is active (no end time)
+	endTime := ""
+	if segment.TimeRange.EndTime != nil {
+		endTime = *segment.TimeRange.EndTime
+	} else {
+		endTime = time.Now().UTC().Format("2006-01-02T15:04:05Z")
+		fmt.Printf("Patrol is active, using current time as end: %s\n", endTime)
+	}
+
+	// Get tracks for the patrol leader
+	tracksResponse, err := client.PatrolTracks(segment.Leader.ID, *segment.TimeRange.StartTime, endTime)
+	if err != nil {
+		log.Fatalf("Error getting patrol tracks: %v", err)
+	}
+
+	if len(tracksResponse.Data.Features) == 0 {
+		fmt.Println("No tracks found for this patrol")
+		return
+	}
+
+	// Export to GeoJSON file
+	filename := fmt.Sprintf("patrol_%d_tracks.geojson", patrolResponse.Data.SerialNumber)
+	if err := utils.ExportToFile(tracksResponse.Data, filename); err != nil {
+		log.Fatalf("Error exporting GeoJSON: %v", err)
+	}
+
+	fmt.Printf("Patrol tracks exported to %s\n", filename)
+	fmt.Printf("Patrol: %s (Serial: %d)\n", patrolResponse.Data.Title, patrolResponse.Data.SerialNumber)
+	fmt.Printf("Leader: %s\n", segment.Leader.Name)
+	fmt.Printf("Start: %s\n", formatTime(segment.TimeRange.StartTime))
+	fmt.Printf("End: %s\n", formatTime(segment.TimeRange.EndTime))
+	fmt.Printf("Tracks: %d features\n", len(tracksResponse.Data.Features))
+}
+
 // ----------------------------------------------
 // initialize
 // ----------------------------------------------
@@ -176,4 +238,5 @@ func init() {
 	rootCmd.AddCommand(patrolsCmd)
 	patrolsCmd.Flags().IntVarP(&days, "days", "d", 7, "Number of days to fetch patrols for")
 	patrolsCmd.Flags().StringVarP(&status, "status", "s", "", "Patrol status (active, done, or cancelled)")
+	patrolsCmd.Flags().StringVarP(&track, "track", "t", "", "Get tracks for a specific patrol ID")
 }
