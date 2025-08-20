@@ -57,7 +57,7 @@ func SelectUserProfileById(id int) User_Profile {
 
 func SelectPendingSyncEvents() []Event {
 	var events []Event
-	db.Where("is_draft = 0").Where(db.Where("remote_id IS NULL").Or("remote_id = ?", "")).Find(&events)
+	db.Where("is_draft = 0").Where(db.Where("serial_number IS NULL").Or("serial_number = ?", "")).Find(&events)
 	return events
 }
 
