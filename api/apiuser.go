@@ -46,7 +46,7 @@ type UserResponse struct {
 // ----------------------------------------------
 
 func (c *Client) User() (*UserResponse, error) {
-	req, err := c.newRequest("GET", API_USER_ME, false)
+	req, err := c.newRequest("GET", API_USER_ME, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating request: %w", err)
 	}
@@ -62,7 +62,7 @@ func (c *Client) User() (*UserResponse, error) {
 func (c *Client) UserProfiles(userID string) (*UserProfilesResponse, error) {
 	profilesEndpoint := path.Join(API_USER, userID, API_USER_PROFILES)
 
-	req, err := c.newRequest("GET", profilesEndpoint, false)
+	req, err := c.newRequest("GET", profilesEndpoint, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating profiles request: %w", err)
 	}
