@@ -110,7 +110,7 @@ func (c *Client) Subjects(updatedSince string) (*SubjectsResponse, error) {
 
 	endpoint := fmt.Sprintf("%s?%s", API_SUBJECTS, params.Encode())
 
-	req, err := c.newRequest("GET", endpoint, false)
+	req, err := c.newRequest("GET", endpoint, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating subjects request: %w", err)
 	}
@@ -132,7 +132,7 @@ func (c *Client) SubjectTracks(subjectID string, daysAgo int) (*TracksResponse, 
 	endpoint := path.Join(API_SUBJECT, subjectID, API_SUBJECT_TRACKS)
 	endpoint = fmt.Sprintf("%s?%s", endpoint, params.Encode())
 
-	req, err := c.newRequest("GET", endpoint, false)
+	req, err := c.newRequest("GET", endpoint, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating tracks request: %w", err)
 	}

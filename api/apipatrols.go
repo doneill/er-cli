@@ -117,7 +117,7 @@ func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
 
 	endpoint := fmt.Sprintf("%s?%s", API_PATROLS, params.Encode())
 
-	req, err := c.newRequest("GET", endpoint, false)
+	req, err := c.newRequest("GET", endpoint, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create patrols request: %w", err)
 	}
@@ -138,7 +138,7 @@ func (c *Client) PatrolTracks(subjectID string, since string, until string) (*Tr
 	endpoint := path.Join(API_SUBJECT, subjectID, API_SUBJECT_TRACKS)
 	endpoint = fmt.Sprintf("%s?%s", endpoint, params.Encode())
 
-	req, err := c.newRequest("GET", endpoint, false)
+	req, err := c.newRequest("GET", endpoint, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating patrol tracks request: %w", err)
 	}
@@ -154,7 +154,7 @@ func (c *Client) PatrolTracks(subjectID string, since string, until string) (*Tr
 func (c *Client) PatrolByID(patrolID string) (*PatrolByIDResponse, error) {
 	endpoint := fmt.Sprintf("%s/%s", API_PATROLS, patrolID)
 
-	req, err := c.newRequest("GET", endpoint, false)
+	req, err := c.newRequest("GET", endpoint, nil, false)
 	if err != nil {
 		return nil, fmt.Errorf("error generating patrol by ID request: %w", err)
 	}

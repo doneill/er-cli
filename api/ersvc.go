@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -67,9 +68,9 @@ func ERClient(sitename, token string, opts ...string) *Client {
 	}
 }
 
-func (c *Client) newRequest(method, endpoint string, isAuth bool) (*http.Request, error) {
+func (c *Client) newRequest(method, endpoint string, body io.Reader, isAuth bool) (*http.Request, error) {
 	url := getApiUrl(c.sitename, endpoint, c.mockURL)
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
