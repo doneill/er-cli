@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -374,6 +375,155 @@ func TestDateRangeFilter(t *testing.T) {
 	_, err := client.Patrols(7, "", 0)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
+	}
+}
+
+func TestPatrolsPagination(t *testing.T) {
+	sameHostNext := func(r *http.Request) string {
+		return "http://" + r.Host + API_PATROLS + "?page=2"
+	}
+
+	tests := []struct {
+		name             string
+		limit            int
+		next             func(*http.Request) string
+		expectedIDs      []string
+		expectedCount    int
+		expectedRequests int
+		expectedPageSize string
+		expectedError    string
+	}{
+		{
+			name:             "follows next across pages",
+			limit:            0,
+			next:             sameHostNext,
+			expectedIDs:      []string{"p1", "p2", "p3"},
+			expectedCount:    3,
+			expectedRequests: 2,
+			expectedPageSize: "1000",
+		},
+		{
+			name:             "limit stops within first page",
+			limit:            1,
+			next:             sameHostNext,
+			expectedIDs:      []string{"p1"},
+			expectedCount:    3,
+			expectedRequests: 1,
+			expectedPageSize: "1",
+		},
+		{
+			name:             "default limit sends page_size 25",
+			limit:            DefaultPatrolLimit,
+			next:             sameHostNext,
+			expectedIDs:      []string{"p1", "p2", "p3"},
+			expectedCount:    3,
+			expectedRequests: 2,
+			expectedPageSize: "25",
+		},
+		{
+			name:  "refuses next url to another host",
+			limit: 0,
+			next: func(r *http.Request) string {
+				return "https://evil.example.com" + API_PATROLS + "?page=2"
+			},
+			expectedRequests: 1,
+			expectedPageSize: "1000",
+			expectedError:    "another host",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var requests []*http.Request
+
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				requests = append(requests, r)
+
+				if r.URL.Path != API_PATROLS {
+					t.Errorf("Expected path %s, got %s", API_PATROLS, r.URL.Path)
+				}
+				if r.Header.Get("Authorization") != "Bearer test-token" {
+					t.Errorf("Expected Bearer test-token, got %s", r.Header.Get("Authorization"))
+				}
+
+				w.Header().Set("Content-Type", "application/json")
+
+				var body string
+				if r.URL.Query().Get("page") == "2" {
+					body = `{
+                        "data": {
+                            "count": 3,
+                            "next": null,
+                            "previous": null,
+                            "results": [
+                                {"id": "p3", "serial_number": 3, "state": "done", "patrol_segments": []}
+                            ]
+                        },
+                        "status": {"code": 200, "message": "OK"}
+                    }`
+				} else {
+					body = fmt.Sprintf(`{
+                        "data": {
+                            "count": 3,
+                            "next": %q,
+                            "previous": null,
+                            "results": [
+                                {"id": "p1", "serial_number": 1, "state": "open", "patrol_segments": []},
+                                {"id": "p2", "serial_number": 2, "state": "done", "patrol_segments": []}
+                            ]
+                        },
+                        "status": {"code": 200, "message": "OK"}
+                    }`, tt.next(r))
+				}
+
+				if _, err := w.Write([]byte(body)); err != nil {
+					t.Errorf("Failed to write response: %v", err)
+				}
+			}))
+			defer server.Close()
+
+			client := ERClient("test", "test-token", server.URL)
+			response, err := client.Patrols(0, "", tt.limit)
+
+			if len(requests) != tt.expectedRequests {
+				t.Errorf("Expected %d requests, got %d", tt.expectedRequests, len(requests))
+			}
+			if len(requests) > 0 {
+				if got := requests[0].URL.Query().Get("page_size"); got != tt.expectedPageSize {
+					t.Errorf("Expected page_size %s, got %s", tt.expectedPageSize, got)
+				}
+			}
+
+			if tt.expectedError != "" {
+				if err == nil {
+					t.Fatalf("Expected error containing %q, got nil", tt.expectedError)
+				}
+				if !strings.Contains(err.Error(), tt.expectedError) {
+					t.Errorf("Expected error containing %q, got %v", tt.expectedError, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+
+			if response.Data.Count != tt.expectedCount {
+				t.Errorf("Expected count %d, got %d", tt.expectedCount, response.Data.Count)
+			}
+			if response.Data.Next != "" {
+				t.Errorf("Expected merged next to be empty, got %s", response.Data.Next)
+			}
+
+			if len(response.Data.Results) != len(tt.expectedIDs) {
+				t.Fatalf("Expected %d results, got %d", len(tt.expectedIDs), len(response.Data.Results))
+			}
+			for i, id := range tt.expectedIDs {
+				if response.Data.Results[i].ID != id {
+					t.Errorf("Expected result %d to be %s, got %s", i, id, response.Data.Results[i].ID)
+				}
+			}
+		})
 	}
 }
 
