@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -146,4 +147,22 @@ func getApiUrl(sitename string, endpoint string, mockURL string) string {
 		return mockURL + endpoint
 	}
 	return fmt.Sprintf("https://%s%s%s", sitename, DOMAIN, endpoint)
+}
+
+func (c *Client) nextEndpoint(next string) (string, error) {
+	base, err := url.Parse(getApiUrl(c.sitename, "", c.mockURL))
+	if err != nil {
+		return "", fmt.Errorf("invalid base url: %w", err)
+	}
+
+	u, err := url.Parse(next)
+	if err != nil {
+		return "", fmt.Errorf("invalid next url: %w", err)
+	}
+
+	if u.Host != base.Host {
+		return "", fmt.Errorf("refusing to follow next url to another host: %s", u.Host)
+	}
+
+	return u.RequestURI(), nil
 }
