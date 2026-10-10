@@ -311,7 +311,7 @@ func TestPatrols(t *testing.T) {
 			defer server.Close()
 
 			client := ERClient("test", "test-token", server.URL)
-			response, err := client.Patrols(tt.days, tt.status)
+			response, err := client.Patrols(tt.days, tt.status, 0)
 
 			if tt.expectedError {
 				if err == nil {
@@ -371,7 +371,7 @@ func TestDateRangeFilter(t *testing.T) {
 	defer server.Close()
 
 	client := ERClient("test", "test-token", server.URL)
-	_, err := client.Patrols(7, "")
+	_, err := client.Patrols(7, "", 0)
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
@@ -454,7 +454,7 @@ func TestPatrolByID(t *testing.T) {
 				if len(response.Data.PatrolSegments) != 1 {
 					t.Fatalf("Expected 1 patrol segment, got %d", len(response.Data.PatrolSegments))
 				}
-				
+
 				segment := response.Data.PatrolSegments[0]
 				if segment.ID != "segment-123" {
 					t.Errorf("Expected segment ID 'segment-123', got '%s'", segment.ID)
@@ -673,7 +673,7 @@ func TestPatrolTracks(t *testing.T) {
 				if len(response.Data.Features) != 1 {
 					t.Fatalf("Expected 1 feature, got %d", len(response.Data.Features))
 				}
-				
+
 				feature := response.Data.Features[0]
 				if feature.Type != "Feature" {
 					t.Errorf("Expected feature type 'Feature', got '%s'", feature.Type)
