@@ -400,7 +400,7 @@ func TestPatrolsPagination(t *testing.T) {
 			expectedIDs:      []string{"p1", "p2", "p3"},
 			expectedCount:    3,
 			expectedRequests: 2,
-			expectedPageSize: "1000",
+			expectedPageSize: "200",
 		},
 		{
 			name:             "limit stops within first page",
@@ -421,13 +421,22 @@ func TestPatrolsPagination(t *testing.T) {
 			expectedPageSize: "25",
 		},
 		{
+			name:             "limit above max page size is capped",
+			limit:            500,
+			next:             sameHostNext,
+			expectedIDs:      []string{"p1", "p2", "p3"},
+			expectedCount:    3,
+			expectedRequests: 2,
+			expectedPageSize: "200",
+		},
+		{
 			name:  "refuses next url to another host",
 			limit: 0,
 			next: func(r *http.Request) string {
 				return "https://evil.example.com" + API_PATROLS + "?page=2"
 			},
 			expectedRequests: 1,
-			expectedPageSize: "1000",
+			expectedPageSize: "200",
 			expectedError:    "another host",
 		},
 	}
