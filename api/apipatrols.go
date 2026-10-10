@@ -5,12 +5,18 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"strconv"
 	"time"
 )
 
 // ----------------------------------------------
 // Patrol types
 // ----------------------------------------------
+
+const (
+	DefaultPatrolLimit = 25
+	maxPatrolPageSize  = 1000
+)
 
 type PatrolsResponse struct {
 	Data struct {
@@ -34,10 +40,10 @@ type PatrolByIDResponse struct {
 }
 
 type Patrol struct {
-	ID             string                  `json:"id"`
-	SerialNumber   int                     `json:"serial_number"`
-	State          string                  `json:"state"`
-	Title          *string                 `json:"title"`
+	ID             string                 `json:"id"`
+	SerialNumber   int                    `json:"serial_number"`
+	State          string                 `json:"state"`
+	Title          *string                `json:"title"`
 	PatrolSegments []PatrolSegmentDetails `json:"patrol_segments"`
 }
 
@@ -87,10 +93,16 @@ type DateRangeFilter struct {
 // Client methods
 // ----------------------------------------------
 
-func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
+func (c *Client) Patrols(days int, status string, limit int) (*PatrolsResponse, error) {
 	params := url.Values{}
 	params.Add("exclude_empty_patrols", "true")
-	params.Add("page_size", "200")
+	pageSize := maxPatrolPageSize
+
+	if limit > 0 && limit < maxPatrolPageSize {
+		pageSize = limit
+	}
+
+	params.Add("page_size", strconv.Itoa(pageSize))
 
 	if status != "" {
 		params.Add("status", status)
@@ -117,17 +129,39 @@ func (c *Client) Patrols(days int, status string) (*PatrolsResponse, error) {
 
 	endpoint := fmt.Sprintf("%s?%s", API_PATROLS, params.Encode())
 
-	req, err := c.newRequest("GET", endpoint, nil, false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create patrols request: %w", err)
+	var merged PatrolsResponse
+
+	for {
+		req, err := c.newRequest("GET", endpoint, nil, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create patrol request: %w", err)
+		}
+
+		var page PatrolsResponse
+		if err := c.doRequest(req, &page); err != nil {
+			return nil, fmt.Errorf("failed to get patrols: %w", err)
+		}
+
+		merged.Status = page.Status
+		merged.Data.Count = page.Data.Count
+		merged.Data.Results = append(merged.Data.Results, page.Data.Results...)
+
+		if limit > 0 && len(merged.Data.Results) >= limit {
+			merged.Data.Results = merged.Data.Results[:limit]
+			break
+		}
+
+		if page.Data.Next == "" {
+			break
+		}
+
+		endpoint, err = c.nextEndpoint(page.Data.Next)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get patrols: %w", err)
+		}
 	}
 
-	var response PatrolsResponse
-	if err := c.doRequest(req, &response); err != nil {
-		return nil, fmt.Errorf("failed to get patrols: %w", err)
-	}
-
-	return &response, nil
+	return &merged, nil
 }
 
 func (c *Client) PatrolTracks(subjectID string, since string, until string) (*TracksResponse, error) {

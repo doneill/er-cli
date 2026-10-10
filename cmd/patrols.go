@@ -17,6 +17,7 @@ var (
 	days   int
 	status string
 	track  string
+	limit  int
 )
 
 var validStatuses = map[string]bool{
@@ -45,6 +46,9 @@ var patrolsCmd = &cobra.Command{
 		if days < 0 {
 			return fmt.Errorf("days value must be positive (got %d)", days)
 		}
+		if limit < 0 {
+			return fmt.Errorf("limit value must be 0 (all) or positive (got %d)", limit)
+		}
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -66,7 +70,7 @@ func patrols() {
 }
 
 func handlePatrols(client *api.Client) {
-	patrolsResponse, err := client.Patrols(days, status)
+	patrolsResponse, err := client.Patrols(days, status, limit)
 	if err != nil {
 		log.Fatalf("Error getting patrols: %v", err)
 	}
@@ -81,6 +85,11 @@ func handlePatrols(client *api.Client) {
 		table.Append(formatPatrolData(&patrol))
 	}
 	table.Render()
+
+	shown := len(patrolsResponse.Data.Results)
+	if total := patrolsResponse.Data.Count; total > shown {
+		fmt.Fprintf(os.Stderr, "Showing %d of %d patrols. Use --limit 0 to show all, or narrow --days --status.\n", shown, total)
+	}
 }
 
 func formatTime(timeStr *string) string {
@@ -190,7 +199,7 @@ func handlePatrolTrack(client *api.Client) {
 
 	// Get the first segment
 	segment := patrolResponse.Data.PatrolSegments[0]
-	
+
 	if segment.TimeRange.StartTime == nil {
 		fmt.Println("No start time found for patrol segment")
 		return
@@ -238,5 +247,6 @@ func init() {
 	rootCmd.AddCommand(patrolsCmd)
 	patrolsCmd.Flags().IntVarP(&days, "days", "d", 7, "Number of days to fetch patrols for")
 	patrolsCmd.Flags().StringVarP(&status, "status", "s", "", "Patrol status (active, done, or cancelled)")
+	patrolsCmd.Flags().IntVarP(&limit, "limit", "l", api.DefaultPatrolLimit, "Max number of patrols to show (0 for all)")
 	patrolsCmd.Flags().StringVarP(&track, "track", "t", "", "Get tracks for a specific patrol ID")
 }
