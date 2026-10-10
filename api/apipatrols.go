@@ -15,7 +15,7 @@ import (
 
 const (
 	DefaultPatrolLimit = 25
-	maxPatrolPageSize  = 1000
+	maxPatrolPageSize  = 200
 )
 
 type PatrolsResponse struct {
