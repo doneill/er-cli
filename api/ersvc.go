@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -38,6 +39,12 @@ const API_USER = API_V1 + "/user"
 const API_USER_ME = API_USER + "/me"
 
 const API_USER_PROFILES = "/profiles"
+
+// ----------------------------------------------
+// errors
+// ----------------------------------------------
+// 
+var ErrUnauthorized = errors.New("unauthorized: your session has expired, run 'er auth' to sign in again")
 
 // ----------------------------------------------
 // struct
@@ -96,6 +103,10 @@ func (c *Client) doRequest(req *http.Request, v interface{}) error {
 		return c.handleRequestError(err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return ErrUnauthorized
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
