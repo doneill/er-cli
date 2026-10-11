@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/doneill/er-cli/api"
-	"github.com/doneill/er-cli/config"
 	"github.com/doneill/er-cli/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -65,7 +64,7 @@ var patrolsCmd = &cobra.Command{
 // ----------------------------------------------
 
 func patrols() {
-	client := api.ERClient(config.Sitename(), config.Token())
+	client := newClient()
 	handlePatrols(client)
 }
 
@@ -181,7 +180,7 @@ func configurePatrolsTable() *tablewriter.Table {
 }
 
 func patrolTrack() {
-	client := api.ERClient(config.Sitename(), config.Token())
+	client := newClient()
 	handlePatrolTrack(client)
 }
 
