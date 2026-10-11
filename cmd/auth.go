@@ -2,13 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/doneill/er-cli/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/term"
-	"log"
-	"strings"
-	"syscall"
 )
 
 // ----------------------------------------------
@@ -47,19 +49,24 @@ func auth() {
 		log.Fatalf("Error authenticating: %v", err)
 	}
 
-	if err := updateAuthConfig(authResponse); err != nil {
+	viper.Set("user", USERNAME)
+	viper.Set("sitename", SITENAME)
+
+	if err := saveTokens(authResponse); err != nil {
 		log.Fatalf("Error updating configuration: %v", err)
 	}
 
 	fmt.Println("Authenticated!")
 }
 
-func updateAuthConfig(authResponse *api.AuthResponse) error {
-	viper.Set("user", USERNAME)
-	viper.Set("sitename", SITENAME)
-	viper.Set("oauth_token", authResponse.AccessToken)
-	viper.Set("expires", authResponse.ExpiresIn)
+func saveTokens(authResponse *api.AuthResponse) error {
+	expiresAt := time.Now().Add(time.Duration(authResponse.ExpiresIn) * time.Second)
 
+	viper.Set("oauth_token", authResponse.AccessToken)
+	viper.Set("refresh_token", authResponse.RefreshToken)
+	viper.Set("expires_at", expiresAt.Unix())
+
+	viper.SetConfigPermissions(0o600)
 	if err := viper.WriteConfigAs(PROGRAM_NAME + CONFIG_TYPE); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}

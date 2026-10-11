@@ -22,13 +22,29 @@ type AuthResponse struct {
 // exported functions
 // ----------------------------------------------
 func Authenticate(sitename, username, password string, opts ...string) (*AuthResponse, error) {
-	client := ERClient(sitename, "", opts...)
-
 	form := url.Values{}
 	form.Set("username", username)
 	form.Set("password", password)
-	form.Set("client_id", "er_mobile_tracker")
 	form.Set("grant_type", "password")
+
+	return requestToken(sitename, form, opts...)
+}
+
+func RefreshToken(sitename, refreshToken string, opts ...string) (*AuthResponse, error) {
+	form := url.Values{}
+	form.Set("refresh_token", refreshToken)
+	form.Set("grant_type", "refresh_token")
+
+	return requestToken(sitename, form, opts...)
+}
+
+// ----------------------------------------------
+// functions
+// ----------------------------------------------
+
+func requestToken(sitename string, form url.Values, opts ...string) (*AuthResponse, error) {
+	client := ERClient(sitename, "", opts...)
+	form.Set("client_id", "er_mobile_tracker")
 
 	req, err := client.newRequest("POST", API_AUTH, strings.NewReader(form.Encode()), true)
 	if err != nil {

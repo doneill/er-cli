@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/doneill/er-cli/api"
-	"github.com/doneill/er-cli/config"
 	"github.com/doneill/er-cli/utils"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -39,7 +38,7 @@ var subjectsCmd = &cobra.Command{
 // ----------------------------------------------
 
 func subjects() {
-	client := api.ERClient(config.Sitename(), config.Token())
+	client := newClient()
 
 	switch {
 	case tracks:
