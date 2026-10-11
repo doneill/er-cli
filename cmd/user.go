@@ -14,6 +14,7 @@ import (
 var (
 	all      bool
 	profiles bool
+	showPin  bool
 )
 
 // ----------------------------------------------
@@ -30,8 +31,22 @@ var userCmd = &cobra.Command{
 }
 
 // ----------------------------------------------
+// const
+// ----------------------------------------------
+
+const pinMask = "****"
+
+// ----------------------------------------------
 // functions
 // ----------------------------------------------
+
+func maskPin(pin string, show bool) string {
+	if show || pin == "" {
+		return pin
+	}
+
+	return pinMask
+}
 
 func user() {
 	er := newClient()
@@ -104,7 +119,7 @@ func formatAllUserData(data *api.UserResponse) string {
 		data.Data.ID,
 		data.Data.IsActive,
 		data.Data.LastLogin,
-		data.Data.Pin,
+		maskPin(data.Data.Pin, showPin),
 		data.Data.Subject.ID)
 }
 
@@ -124,7 +139,7 @@ func formatAllProfileData(data *api.UserData) string {
 		data.ID,
 		data.IsActive,
 		data.LastLogin,
-		data.Pin,
+		maskPin(data.Pin, showPin),
 		data.Subject.ID,
 		data.AcceptedEula)
 }
@@ -136,7 +151,7 @@ func formatTableData(data *api.UserResponse) []string {
 		data.Data.FirstName,
 		data.Data.LastName,
 		data.Data.ID,
-		data.Data.Pin,
+		maskPin(data.Data.Pin, showPin),
 		data.Data.Subject.ID,
 	}
 }
@@ -169,4 +184,5 @@ func init() {
 	rootCmd.AddCommand(userCmd)
 	userCmd.Flags().BoolVarP(&all, "all", "a", false, "list all user parameters")
 	userCmd.Flags().BoolVarP(&profiles, "profiles", "p", false, "list all user profiles")
+	userCmd.Flags().BoolVar(&showPin, "show-pin", false, "display PIN")
 }
