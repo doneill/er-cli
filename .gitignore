@@ -17,3 +17,6 @@ bin/*
 
 # Go workspace file
 go.work
+
+# EarthRanger CLI local user config
+er.toml
