@@ -43,7 +43,7 @@ const API_USER_PROFILES = "/profiles"
 // ----------------------------------------------
 // errors
 // ----------------------------------------------
-// 
+
 var ErrUnauthorized = errors.New("unauthorized: your session has expired, run 'er auth' to sign in again")
 
 // ----------------------------------------------
