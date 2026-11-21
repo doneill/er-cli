@@ -14,10 +14,11 @@ import (
 )
 
 var (
-	daysAgo   int
-	tracks    bool
-	subjectID string
-	export    bool
+	daysAgo         int
+	reportedDaysAgo int
+	tracks          bool
+	subjectID       string
+	export          bool
 )
 
 // ----------------------------------------------
@@ -27,9 +28,9 @@ var (
 var subjectsCmd = &cobra.Command{
 	Use:   "subjects",
 	Short: "Get subjects data and tracks",
-	Long:  `Return subject data and tracks updated within specified number of days ago`,
+	Long:  `Return subjects data and tracks updated within specified number of days ago`,
 	Run: func(cmd *cobra.Command, args []string) {
-		subjects()
+		subjects(cmd.Flags().Changed("reported-since"))
 	},
 }
 
@@ -37,7 +38,7 @@ var subjectsCmd = &cobra.Command{
 // functions
 // ----------------------------------------------
 
-func subjects() {
+func subjects(byReported bool) {
 	client := newClient()
 
 	switch {
@@ -47,7 +48,7 @@ func subjects() {
 		}
 		handleTracks(client)
 	default:
-		handleSubjects(client)
+		handleSubjects(client, byReported)
 	}
 }
 
@@ -75,11 +76,22 @@ func handleTracks(client *api.Client) {
 	}
 }
 
-func handleSubjects(client *api.Client) {
-	// Calculate the date from days ago
-	updatedSince := time.Now().AddDate(0, 0, -daysAgo).UTC().Format("2006-01-02T15:04:05.000")
+func sinceDaysAgo(days int) string {
+	return time.Now().AddDate(0, 0, -days).UTC().Format("2006-01-02T15:04:05.000")
+}
 
-	subjectsResponse, err := client.Subjects(updatedSince)
+func handleSubjects(client *api.Client, byReported bool) {
+	var (
+		subjectsResponse *api.SubjectsResponse
+		err              error
+	)
+
+	if byReported {
+		subjectsResponse, err = client.SubjectsReportedSince(sinceDaysAgo(reportedDaysAgo))
+	} else {
+		subjectsResponse, err = client.Subjects(sinceDaysAgo(daysAgo))
+	}
+
 	if err != nil {
 		log.Fatalf("Error getting subjects: %v", err)
 	}
@@ -142,8 +154,10 @@ func configureSubjectsTable() *tablewriter.Table {
 
 func init() {
 	rootCmd.AddCommand(subjectsCmd)
-	subjectsCmd.Flags().IntVarP(&daysAgo, "updated-since", "u", 3, "Number of days ago to query updates from")
+	subjectsCmd.Flags().IntVarP(&daysAgo, "updated-since", "u", 3, "Subjects with any change withing this many days")
 	subjectsCmd.Flags().BoolVarP(&tracks, "tracks", "t", false, "Get tracks for a subject")
 	subjectsCmd.Flags().StringVarP(&subjectID, "subject-id", "s", "", "Subject ID for tracks query")
 	subjectsCmd.Flags().BoolVarP(&export, "export", "e", false, "Export tracks to GeoJSON file")
+	subjectsCmd.Flags().IntVarP(&reportedDaysAgo, "reported-since", "r", 3, "Only subjects that reported a postion within this many days")
+	subjectsCmd.MarkFlagsMutuallyExclusive("updated-since", "reported-since")
 }

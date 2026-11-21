@@ -108,6 +108,17 @@ func (c *Client) Subjects(updatedSince string) (*SubjectsResponse, error) {
 	params := url.Values{}
 	params.Add("updated_since", updatedSince)
 
+	return c.fetchSubjects(params)
+}
+
+func (c *Client) SubjectsReportedSince(reportedSince string) (*SubjectsResponse, error) {
+	params := url.Values{}
+	params.Add("position_updated_since", reportedSince)
+
+	return c.fetchSubjects(params)
+}
+
+func (c *Client) fetchSubjects(params url.Values) (*SubjectsResponse, error) {
 	endpoint := fmt.Sprintf("%s?%s", API_SUBJECTS, params.Encode())
 
 	req, err := c.newRequest("GET", endpoint, nil, false)
