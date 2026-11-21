@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -101,6 +102,9 @@ func handleSubjects(client *api.Client, byReported bool) {
 		return
 	}
 
+	sort.SliceStable(subjectsResponse.Data, func(i, j int) bool {
+		return subjectsResponse.Data[i].LastPositionDate > subjectsResponse.Data[j].LastPositionDate
+	})
 	table := configureSubjectsTable()
 	for _, subject := range subjectsResponse.Data {
 		table.Append(formatSubjectData(&subject))
