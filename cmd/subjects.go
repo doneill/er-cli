@@ -29,7 +29,15 @@ var (
 var subjectsCmd = &cobra.Command{
 	Use:   "subjects",
 	Short: "Get subjects data and tracks",
-	Long:  `Return subjects data and tracks updated within specified number of days ago`,
+	Long: `List subjects, newest first, or get one subject's tracks.
+
+  -u N  subjects with any change in the last N days: a record edit, a new
+        position, a radio state change or a voice call. The Updated column
+        shows the latest of these.
+  -r N  only subjects that reported a position in the last N days. The Last
+        Position Date column shows when.
+
+-u and -r cannot be used together. Both default to 3 days.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		subjects(cmd.Flags().Changed("reported-since"))
 	},
@@ -177,10 +185,10 @@ func configureSubjectsTable(dateHeader string) *tablewriter.Table {
 
 func init() {
 	rootCmd.AddCommand(subjectsCmd)
-	subjectsCmd.Flags().IntVarP(&daysAgo, "updated-since", "u", 3, "Subjects with any change withing this many days")
+	subjectsCmd.Flags().IntVarP(&daysAgo, "updated-since", "u", 3, "Subjects with any change within this many days")
 	subjectsCmd.Flags().BoolVarP(&tracks, "tracks", "t", false, "Get tracks for a subject")
 	subjectsCmd.Flags().StringVarP(&subjectID, "subject-id", "s", "", "Subject ID for tracks query")
 	subjectsCmd.Flags().BoolVarP(&export, "export", "e", false, "Export tracks to GeoJSON file")
-	subjectsCmd.Flags().IntVarP(&reportedDaysAgo, "reported-since", "r", 3, "Only subjects that reported a postion within this many days")
+	subjectsCmd.Flags().IntVarP(&reportedDaysAgo, "reported-since", "r", 3, "Only subjects that reported a position within this many days")
 	subjectsCmd.MarkFlagsMutuallyExclusive("updated-since", "reported-since")
 }
