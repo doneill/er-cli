@@ -20,12 +20,19 @@ type SubjectsResponse struct {
 }
 
 type Subject struct {
-	ID               string       `json:"id"`
-	LastPosition     LastPosition `json:"last_position"`
-	LastPositionDate string       `json:"last_position_date"`
-	Name             string       `json:"name"`
-	SubjectSubtype   string       `json:"subject_subtype"`
-	SubjectType      string       `json:"subject_type"`
+	ID                 string             `json:"id"`
+	LastPosition       LastPosition       `json:"last_position"`
+	LastPositionDate   string             `json:"last_position_date"`
+	LastPositionStatus LastPositionStatus `json:"last_position_status"`
+	Name               string             `json:"name"`
+	SubjectSubtype     string             `json:"subject_subtype"`
+	SubjectType        string             `json:"subject_type"`
+	UpdatedAt          string             `json:"updated_at"`
+}
+
+type LastPositionStatus struct {
+	LastVoiceCallStartAt *string `json:"last_voice_call_start_at"`
+	RadioStateAt         *string `json:"radio_state_at"`
 }
 
 type LastPosition struct {
@@ -132,6 +139,25 @@ func (c *Client) fetchSubjects(params url.Values) (*SubjectsResponse, error) {
 	}
 
 	return &responseData, nil
+}
+
+func (s *Subject) LastUpdated() time.Time {
+	candidates := []string{s.UpdatedAt, s.LastPositionDate}
+	if s.LastPositionStatus.RadioStateAt != nil {
+		candidates = append(candidates, *s.LastPositionStatus.RadioStateAt)
+	}
+	if s.LastPositionStatus.LastVoiceCallStartAt != nil {
+		candidates = append(candidates, *s.LastPositionStatus.LastVoiceCallStartAt)
+	}
+
+	var latest time.Time
+	for _, c := range candidates {
+		t, err := time.Parse(time.RFC3339Nano, c)
+		if err == nil && t.After(latest) {
+			latest = t
+		}
+	}
+	return latest
 }
 
 func (c *Client) SubjectTracks(subjectID string, daysAgo int) (*TracksResponse, error) {

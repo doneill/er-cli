@@ -102,17 +102,36 @@ func handleSubjects(client *api.Client, byReported bool) {
 		return
 	}
 
-	sort.SliceStable(subjectsResponse.Data, func(i, j int) bool {
-		return subjectsResponse.Data[i].LastPositionDate > subjectsResponse.Data[j].LastPositionDate
-	})
-	table := configureSubjectsTable()
-	for _, subject := range subjectsResponse.Data {
-		table.Append(formatSubjectData(&subject))
+	dateHeader := "Last Position Date"
+	dateFor := func(s *api.Subject) time.Time {
+		t, _ := time.Parse(time.RFC3339Nano, s.LastPositionDate)
+		return t
 	}
+	if !byReported {
+		dateHeader = "Updated"
+		dateFor = (*api.Subject).LastUpdated
+	}
+
+	sort.SliceStable(subjectsResponse.Data, func(i, j int) bool {
+		return dateFor(&subjectsResponse.Data[i]).After(dateFor(&subjectsResponse.Data[j]))
+	})
+	table := configureSubjectsTable(dateHeader)
+	for i := range subjectsResponse.Data {
+		subject := &subjectsResponse.Data[i]
+		table.Append(formatSubjectData(subject, formatDate(dateFor(subject))))
+	}
+
 	table.Render()
 }
 
-func formatSubjectData(subject *api.Subject) []string {
+func formatDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format("2006-01-02T15:04:05-07:00")
+}
+
+func formatSubjectData(subject *api.Subject, date string) []string {
 	coordinates := "N/A"
 
 	if len(subject.LastPosition.Geometry.Coordinates) >= 2 {
@@ -127,19 +146,19 @@ func formatSubjectData(subject *api.Subject) []string {
 		subject.ID,
 		subject.SubjectType,
 		subject.SubjectSubtype,
-		subject.LastPositionDate,
+		date,
 		coordinates,
 	}
 }
 
-func configureSubjectsTable() *tablewriter.Table {
+func configureSubjectsTable(dateHeader string) *tablewriter.Table {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{
 		"Name",
 		"ID",
 		"Type",
 		"Subtype",
-		"Last Position Date",
+		dateHeader,
 		"Last Position (lat, lon)",
 	})
 	table.SetBorders(tablewriter.Border{
