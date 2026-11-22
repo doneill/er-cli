@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -14,10 +15,11 @@ import (
 )
 
 var (
-	daysAgo   int
-	tracks    bool
-	subjectID string
-	export    bool
+	daysAgo         int
+	reportedDaysAgo int
+	tracks          bool
+	subjectID       string
+	export          bool
 )
 
 // ----------------------------------------------
@@ -27,9 +29,17 @@ var (
 var subjectsCmd = &cobra.Command{
 	Use:   "subjects",
 	Short: "Get subjects data and tracks",
-	Long:  `Return subject data and tracks updated within specified number of days ago`,
+	Long: `List subjects, newest first, or get one subject's tracks.
+
+  -u N  subjects with any change in the last N days: a record edit, a new
+        position, a radio state change or a voice call. The Updated column
+        shows the latest of these.
+  -r N  only subjects that reported a position in the last N days. The Last
+        Position Date column shows when.
+
+-u and -r cannot be used together. Both default to 3 days.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		subjects()
+		subjects(cmd.Flags().Changed("reported-since"))
 	},
 }
 
@@ -37,7 +47,7 @@ var subjectsCmd = &cobra.Command{
 // functions
 // ----------------------------------------------
 
-func subjects() {
+func subjects(byReported bool) {
 	client := newClient()
 
 	switch {
@@ -47,7 +57,7 @@ func subjects() {
 		}
 		handleTracks(client)
 	default:
-		handleSubjects(client)
+		handleSubjects(client, byReported)
 	}
 }
 
@@ -75,11 +85,22 @@ func handleTracks(client *api.Client) {
 	}
 }
 
-func handleSubjects(client *api.Client) {
-	// Calculate the date from days ago
-	updatedSince := time.Now().AddDate(0, 0, -daysAgo).UTC().Format("2006-01-02T15:04:05.000")
+func sinceDaysAgo(days int) string {
+	return time.Now().AddDate(0, 0, -days).UTC().Format("2006-01-02T15:04:05.000")
+}
 
-	subjectsResponse, err := client.Subjects(updatedSince)
+func handleSubjects(client *api.Client, byReported bool) {
+	var (
+		subjectsResponse *api.SubjectsResponse
+		err              error
+	)
+
+	if byReported {
+		subjectsResponse, err = client.SubjectsReportedSince(sinceDaysAgo(reportedDaysAgo))
+	} else {
+		subjectsResponse, err = client.Subjects(sinceDaysAgo(daysAgo))
+	}
+
 	if err != nil {
 		log.Fatalf("Error getting subjects: %v", err)
 	}
@@ -89,14 +110,36 @@ func handleSubjects(client *api.Client) {
 		return
 	}
 
-	table := configureSubjectsTable()
-	for _, subject := range subjectsResponse.Data {
-		table.Append(formatSubjectData(&subject))
+	dateHeader := "Last Position Date"
+	dateFor := func(s *api.Subject) time.Time {
+		t, _ := time.Parse(time.RFC3339Nano, s.LastPositionDate)
+		return t
 	}
+	if !byReported {
+		dateHeader = "Updated"
+		dateFor = (*api.Subject).LastUpdated
+	}
+
+	sort.SliceStable(subjectsResponse.Data, func(i, j int) bool {
+		return dateFor(&subjectsResponse.Data[i]).After(dateFor(&subjectsResponse.Data[j]))
+	})
+	table := configureSubjectsTable(dateHeader)
+	for i := range subjectsResponse.Data {
+		subject := &subjectsResponse.Data[i]
+		table.Append(formatSubjectData(subject, formatDate(dateFor(subject))))
+	}
+
 	table.Render()
 }
 
-func formatSubjectData(subject *api.Subject) []string {
+func formatDate(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.UTC().Format("2006-01-02T15:04:05-07:00")
+}
+
+func formatSubjectData(subject *api.Subject, date string) []string {
 	coordinates := "N/A"
 
 	if len(subject.LastPosition.Geometry.Coordinates) >= 2 {
@@ -111,19 +154,19 @@ func formatSubjectData(subject *api.Subject) []string {
 		subject.ID,
 		subject.SubjectType,
 		subject.SubjectSubtype,
-		subject.LastPositionDate,
+		date,
 		coordinates,
 	}
 }
 
-func configureSubjectsTable() *tablewriter.Table {
+func configureSubjectsTable(dateHeader string) *tablewriter.Table {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{
 		"Name",
 		"ID",
 		"Type",
 		"Subtype",
-		"Last Position Date",
+		dateHeader,
 		"Last Position (lat, lon)",
 	})
 	table.SetBorders(tablewriter.Border{
@@ -142,8 +185,10 @@ func configureSubjectsTable() *tablewriter.Table {
 
 func init() {
 	rootCmd.AddCommand(subjectsCmd)
-	subjectsCmd.Flags().IntVarP(&daysAgo, "updated-since", "u", 3, "Number of days ago to query updates from")
+	subjectsCmd.Flags().IntVarP(&daysAgo, "updated-since", "u", 3, "Subjects with any change within this many days")
 	subjectsCmd.Flags().BoolVarP(&tracks, "tracks", "t", false, "Get tracks for a subject")
 	subjectsCmd.Flags().StringVarP(&subjectID, "subject-id", "s", "", "Subject ID for tracks query")
 	subjectsCmd.Flags().BoolVarP(&export, "export", "e", false, "Export tracks to GeoJSON file")
+	subjectsCmd.Flags().IntVarP(&reportedDaysAgo, "reported-since", "r", 3, "Only subjects that reported a position within this many days")
+	subjectsCmd.MarkFlagsMutuallyExclusive("updated-since", "reported-since")
 }

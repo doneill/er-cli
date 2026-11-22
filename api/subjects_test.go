@@ -302,3 +302,91 @@ func TestSubjectTracks(t *testing.T) {
 		})
 	}
 }
+
+func TestSubjectsReportedSince(t *testing.T) {
+	reportedSince := time.Now().AddDate(0, 0, -7).UTC().Format("2006-01-02T15:04:05.000")
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+		if got := query.Get("position_updated_since"); got != reportedSince {
+			t.Errorf("expected position_updated_since %s, got %q", reportedSince, got)
+		}
+		if query.Has("updated_since") {
+			t.Error("updated_since must not be sent with position_updated_since")
+		}
+		if !strings.HasSuffix(r.URL.Path, API_SUBJECTS) {
+			t.Errorf("expected path to end with %s, got %s", API_SUBJECTS, r.URL.Path)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"data":[{"id":"abc","name":"Ranger 1","last_position_date":"2026-11-21T00:03:49+00:00"}],"status":{"code":200,"message":"OK"}}`))
+	}))
+	defer server.Close()
+
+	client := ERClient("test", "testtoken", server.URL)
+	resp, err := client.SubjectsReportedSince(reportedSince)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(resp.Data) != 1 || resp.Data[0].Name != "Ranger 1" {
+		t.Errorf("unexpected subjects: %+v", resp.Data)
+	}
+}
+
+func TestSubjectLastUpdated(t *testing.T) {
+	tests := []struct {
+		name string
+		json string
+		want string
+	}{
+		{
+			name: "updated_at is latest",
+			json: `{"updated_at":"2026-11-20T10:00:00.123456Z","last_position_date":"2026-11-19T10:00:00+00:00"}`,
+			want: "2026-11-20T10:00:00.123456Z",
+		},
+		{
+			name: "last position is latest",
+			json: `{"updated_at":"2023-09-06T14:43:10.536813Z","last_position_date":"2026-11-17T20:56:00+00:00"}`,
+			want: "2026-11-17T20:56:00Z",
+		},
+		{
+			name: "radio state is latest",
+			json: `{"updated_at":"2026-11-01T00:00:00Z","last_position_date":"2026-11-02T00:00:00+00:00",
+                              "last_position_status":{"radio_state_at":"2026-11-03T00:00:00+00:00","last_voice_call_start_at":null}}`,
+			want: "2026-11-03T00:00:00Z",
+		},
+		{
+			name: "voice call is latest",
+			json: `{"updated_at":"2026-11-01T00:00:00Z","last_position_date":"2026-11-02T00:00:00+00:00",
+                              "last_position_status":{"radio_state_at":null,"last_voice_call_start_at":"2026-11-04T00:00:00+00:00"}}`,
+			want: "2026-11-04T00:00:00Z",
+		},
+		{
+			name: "no dates",
+			json: `{"updated_at":"","last_position_date":""}`,
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var s Subject
+			if err := json.Unmarshal([]byte(tt.json), &s); err != nil {
+				t.Fatalf("unmarshal: %v", err)
+			}
+
+			got := s.LastUpdated()
+			if tt.want == "" {
+				if !got.IsZero() {
+					t.Errorf("expected zero time, got %v", got)
+				}
+				return
+			}
+
+			want, _ := time.Parse(time.RFC3339Nano, tt.want)
+			if !got.Equal(want) {
+				t.Errorf("expected %v, got %v", want, got)
+			}
+		})
+	}
+}
